@@ -1,0 +1,41 @@
+.multiselect-reset {
+    text-align: left;
+    box-sizing: border-box;
+    text-size-adjust: 100%;
+    color: $multiselect-text-color;
+    font-size: $multiselect-text-size;
+    font-weight: $multiselect-font-weight;
+    font-family: $multiselect-font-family;
+    line-height: $multiselect-line-height;
+    text-rendering: optimizeLegibility;
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-font-smoothing: antialiased;
+
+    * {
+        &,
+        &:after,
+        &:before {
+            box-sizing: inherit;
+        }
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+        font-family: $multiselect-font-family;
+    }
+
+    a {
+        cursor: pointer;
+        text-decoration: none;
+    }
+
+    ul {
+        list-style: none;
+    }
+
+    strong {
+        font-weight: $multiselect-font-weight-semibold;
+    }
+}

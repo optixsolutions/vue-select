@@ -1,0 +1,174 @@
+.multiselect-select {
+    position: relative;
+}
+
+.multiselect-select-control {
+    display: flex;
+    cursor: default;
+    flex-wrap: wrap;
+    position: relative;
+    align-items: center;
+    justify-content: space-around;
+    min-height: $multiselect-min-height;
+    border-radius: $multiselect-border-radius;
+    border: 1px solid $multiselect-border-color;
+    background-color: $multiselect-background-color;
+
+    &:hover {
+        border-color: $multiselect-border-hover-color;
+        background-color: $multiselect-background-hover-color;
+
+        .multiselect-arrow {
+            &:before {
+                border-top-color: $multiselect-arrow-hover-color;
+            }
+        }
+
+        .multiselect-placeholder {
+            color: $multiselect-placeholder-hover-color;
+        }
+
+        .multiselect-single-value {
+            color: $multiselect-single-value-hover-color;
+        }
+    }
+}
+
+.multiselect-value-container {
+    flex: 1 1 0%;
+    display: flex;
+    flex-wrap: wrap;
+    overflow: hidden;
+    position: relative;
+    align-items: center;
+    padding: $multiselect-value-padding;
+}
+
+.multiselect-placeholder {
+    top: 50%;
+    margin-left: 2px;
+    margin-right: 2px;
+    position: absolute;
+    transform: translateY(-50%);
+    color: $multiselect-placeholder-color;
+}
+
+.multiselect-input {
+    margin: 2px;
+    padding-top: 2px;
+    padding-bottom: 2px;
+    color: $multiselect-input-color;
+
+    input {
+        width: 2px;
+        outline: 0;
+        padding: 0;
+        border: 0px;
+        color: inherit;
+        font-size: inherit;
+        background: transparent;
+    }
+}
+
+.multiselect-single-value {
+    top: 50%;
+    margin-left: 2px;
+    overflow: hidden;
+    margin-right: 2px;
+    position: absolute;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    max-width: calc(100% - 8px);
+    transform: translateY(-50%);
+    color: $multiselect-single-value-color;
+}
+
+.multiselect-multi-value {
+    margin: 2px;
+    min-width: 0;
+    display: flex;
+    font-size: $multiselect-multi-value-font-size;
+    border-radius: $multiselect-multi-value-border-radius;
+    background-color: $multiselect-multi-value-background-color;
+
+    &:hover {
+        background-color: $multiselect-multi-value-hover-background-color;
+    }
+}
+
+.multiselect-multi-value-label {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    color: $multiselect-multi-value-color;
+    padding: $multiselect-multi-value-label-padding;
+    border-radius: $multiselect-multi-value-border-radius;
+}
+
+.multiselect-multi-value-remove {
+    display: flex;
+    min-width: 27px;
+    cursor: pointer;
+    position: relative;
+    align-items: center;
+    justify-content: center;
+    padding: $multiselect-multi-value-remove-padding;
+    border-radius: $multiselect-multi-value-border-radius;
+
+    &:before,
+    &:after {
+        width: 2px;
+        left: 13px;
+        content: '';
+        height: 10px;
+        position: absolute;
+        background-color: $multiselect-multi-value-remove-color;
+    }
+
+    &:before {
+        transform: rotate(45deg);
+    }
+
+    &:after {
+        transform: rotate(-45deg);
+    }
+
+    &:hover {
+        color: $multiselect-multi-value-remove-hover-color;
+        background-color: $multiselect-multi-value-remove-hover-background-color;
+
+        &:before,
+        &:after {
+            background-color: $multiselect-multi-value-remove-hover-color;
+        }
+    }
+}
+
+.multiselect-actions {
+    display: flex;
+    flex-shrink: 0;
+    align-self: stretch;
+    align-items: center;
+}
+
+.multiselect-arrow {
+    display: flex;
+    cursor: pointer;
+    position: relative;
+    align-items: center;
+    justify-content: center;
+    width: calc(#{$multiselect-min-height} - 2px);
+    height: calc(#{$multiselect-min-height} - 2px);
+
+    &:before {
+        width: 0;
+        height: 0;
+        content: '';
+        display: block;
+        position: absolute;
+        position: absolute;
+        border-left: 5px solid transparent;
+        border-right: 5px solid transparent;
+        border-top: 5px solid $multiselect-arrow-color;
+    }
+}
