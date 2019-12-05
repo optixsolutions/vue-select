@@ -60,9 +60,9 @@
     color: $multiselect-input-color;
 
     input {
-        width: 2px;
         outline: 0;
         padding: 0;
+        width: auto;
         border: 0px;
         color: inherit;
         font-size: inherit;
@@ -98,6 +98,7 @@
 
 .multiselect-multi-value-label {
     overflow: hidden;
+    user-select: none;
     white-space: nowrap;
     text-overflow: ellipsis;
     color: $multiselect-multi-value-color;

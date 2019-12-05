@@ -9,6 +9,7 @@
                     'selected': isSelected(option.value),
                     'disabled': isDisabled(option),
                 }"
+                @click="toggleSelect(option)"
             >
                 {{ option.label }}
             </div>
@@ -24,9 +25,15 @@ export default {
             default: () => [],
         },
 
-        selectedOptionValues: {
+        selectedOptions: {
             type: Array,
             default: () => [],
+        },
+    },
+
+    computed: {
+        selectedOptionValues() {
+            return this.selectedOptions.map(({ value }) => value);
         },
     },
 
@@ -37,6 +44,18 @@ export default {
 
         isDisabled(option) {
             return option.disabled || false;
+        },
+
+        toggleSelect(option) {
+            if (this.isDisabled(option)) {
+                return;
+            }
+
+            if (this.isSelected(option.value)) {
+                return this.$emit('deselect', option);
+            }
+
+            this.$emit('select', option);
         },
     },
 };
