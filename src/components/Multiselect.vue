@@ -108,6 +108,16 @@ export default {
             default: false,
         },
 
+        searchable: {
+            type: Boolean,
+            default: true,
+        },
+
+        hideSelected: {
+            type: Boolean,
+            default: false,
+        },
+
         placeholder: {
             type: String,
             default: 'Please select...',
@@ -153,15 +163,21 @@ export default {
         filteredOptions() {
             let options = this.options;
 
-            options = options.filter(({ value }) => {
-                return ! this.selectedMenuOptionValues.includes(value);
-            });
+            if (this.hideSelected) {
+                options = options.filter(({ value }) => {
+                    return ! this.selectedMenuOptionValues.includes(value);
+                });
+            }
 
-            return options.filter(({ label }) => {
-                return label.toUpperCase().indexOf(
-                    this.searchQuery.toUpperCase()
-                ) !== -1;
-            });
+            if (this.searchable) {
+                options = options.filter(({ label }) => {
+                    return label.toUpperCase().indexOf(
+                        this.searchQuery.toUpperCase()
+                    ) !== -1;
+                });
+            }
+
+            return options;
         },
     },
 
@@ -204,21 +220,26 @@ export default {
     },
 
     methods: {
-        blurInput() {
-            this.searchQuery = '';
-            this.inputIsActive = false;
-        },
-
         keydownListener(e) {
-            // arrow down
+            // Arrow down
             if (e.keyCode === 40 && this.inputIsActive && ! this.selectMenuIsOpen) {
                 this.selectMenuIsOpen = true;
+            }
+
+            // Delete
+            if (e.keyCode === 8 && this.inputIsActive && this.hasValue && ! this.multiple) {
+                this.selectedMenuOptions = [];
             }
 
             // Escape
             if (e.keyCode === 27 && this.selectMenuIsOpen) {
                 this.selectMenuIsOpen = false;
             }
+        },
+
+        blurInput() {
+            this.searchQuery = '';
+            this.inputIsActive = false;
         },
 
         openSelectMenu() {
@@ -241,6 +262,7 @@ export default {
         selectOption(option) {
             this.searchQuery = '';
             this.selectMenuIsOpen = false;
+            this.$emit('select', option);
 
             if (this.multiple) {
                 return this.selectedMenuOptions.push(option);
@@ -251,6 +273,7 @@ export default {
 
         deselectOption(option) {
             this.selectMenuIsOpen = false;
+            this.$emit('deselect', option);
 
             this.selectedMenuOptions = this.selectedMenuOptions.filter(({ value }) => {
                 return value !== option.value;

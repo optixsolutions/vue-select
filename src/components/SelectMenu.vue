@@ -97,14 +97,14 @@ export default {
     methods: {
         keydownListener(e) {
             if (this.hasFocusableOptions) {
-                // enter
+                // Enter
                 if (e.keyCode === 13) {
                     this.toggleSelectedOption(
                         this.options[this.focusedOptionIndex]
                     );
                 }
 
-                // arrow up
+                // Arrow up
                 if (e.keyCode === 38) {
                     const previousIndex = this.getPreviousFocusableIndex(
                         this.focusedOptionIndex
@@ -114,7 +114,7 @@ export default {
                     this.scrollToOption(previousIndex);
                 }
 
-                // arrow down
+                // Arrow down
                 if (e.keyCode === 40) {
                     const nextIndex = this.getNextFocusableIndex(
                         this.focusedOptionIndex
