@@ -1,13 +1,17 @@
+$multiselect-menu-max-height: 300px !default;
 $multiselect-menu-background-color: $multiselect-white !default;
 $multiselect-menu-box-shadow: rgba(0, 0, 0, 0.1) 0px 0px 0px 1px,
                               rgba(0, 0, 0, 0.1) 0px 4px 11px !default;
 
-$multiselect-menu-max-height: 300px !default;
-
 $multiselect-menu-option-padding: 6px 10px !default;
 $multiselect-menu-option-color: $multiselect-grey-800 !default;
 $multiselect-menu-option-hover-background-color: $multiselect-blue-100 !default;
+
+$multiselect-menu-option-selected-color: $multiselect-white !default;
 $multiselect-menu-option-selected-background-color: $multiselect-blue-500 !default;
+
+$multiselect-menu-option-selected-focused-color: $multiselect-white !default;
+$multiselect-menu-option-selected-focused-background-color: $multiselect-blue-600 !default;
 
 $multiselect-menu-option-disabled-color: $multiselect-grey-500 !default;
 $multiselect-menu-option-disabled-background-color: transparent !default;

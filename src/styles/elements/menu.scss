@@ -18,6 +18,11 @@
     max-height: $multiselect-menu-max-height;
 }
 
+.multiselect-select-menu-no-options {
+    text-align: center;
+    padding: $multiselect-menu-option-padding;
+}
+
 .multiselect-select-menu-option {
     width: 100%;
     display: block;
@@ -29,15 +34,21 @@
     padding: $multiselect-menu-option-padding;
     -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
 
-    &:hover {
-        &:not(.disabled):not(.selected) {
+
+    &.focused {
+        &:not(.disabled) {
             background-color: $multiselect-menu-option-hover-background-color;
         }
     }
 
     &.selected {
-        color: #fff;
+        color: $multiselect-menu-option-selected-color;
         background-color: $multiselect-menu-option-selected-background-color;
+
+        &.focused {
+            color: $multiselect-menu-option-selected-focused-color;
+            background-color: $multiselect-menu-option-selected-focused-background-color;
+        }
     }
 
     &.disabled {

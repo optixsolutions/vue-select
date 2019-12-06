@@ -7,10 +7,10 @@
                         v-if="! hasValue && ! hasSearchQuery"
                         class="multiselect-placeholder"
                     >
-                        Please select
+                        {{ placeholder }}
                     </div>
 
-                    <template v-if="hasValue && isMultiple">
+                    <template v-if="hasValue && multiple">
                         <div
                             v-for="selectedMenuOption in selectedMenuOptions"
                             :key="selectedMenuOption.value"
@@ -29,7 +29,7 @@
                     </template>
 
                     <div
-                        v-if="! hasSearchQuery && hasValue && ! isMultiple"
+                        v-if="! hasSearchQuery && hasValue && ! multiple"
                         class="multiselect-single-value"
                     >
                         {{ firstSelectedMenuOption.label }}
@@ -37,26 +37,41 @@
 
                     <div class="multiselect-input">
                         <input
+                            :id="id"
                             ref="input"
                             v-model="searchQuery"
                             size="2"
-                            @blur="searchQuery = ''"
+                            @focus="inputIsActive = true"
+                            @blur="blurInput"
                         >
                     </div>
                 </div>
 
                 <div class="multiselect-actions">
-                    <div class="multiselect-arrow" />
+                    <div v-if="loading" class="multiselect-loader">
+                        <div v-for="i in 4" :key="i" />
+                    </div>
+
+                    <div v-if="! loading" class="multiselect-arrow" />
                 </div>
             </div>
 
             <select-menu
                 v-if="selectMenuIsOpen"
-                :options="menuOptions"
+                :options="filteredOptions"
                 :selected-options="selectedMenuOptions"
-                @select="selectOption"
-                @deselect="deselectOption"
-            />
+                :no-options-message="noOptionsMessage"
+                @select-option="selectOption"
+                @deselect-option="deselectOption"
+            >
+                <template #menu-option="{ option, classes }">
+                    <slot name="menu-option" v-bind="{ option, classes }">
+                        <div class="multiselect-select-menu-option" :class="classes">
+                            {{ option.label }}
+                        </div>
+                    </slot>
+                </template>
+            </select-menu>
         </div>
     </div>
 </template>
@@ -68,26 +83,48 @@ export default {
     components: { SelectMenu },
 
     props: {
-        isMultiple: {
+        value: {
+            type: [ String, Number, Array ],
+            default: () => [],
+        },
+
+        id: {
+            type: String,
+            default: null,
+        },
+
+        options: {
+            type: Array,
+            default: () => [],
+        },
+
+        loading: {
             type: Boolean,
-            default: true,
+            default: false,
+        },
+
+        multiple: {
+            type: Boolean,
+            default: false,
+        },
+
+        placeholder: {
+            type: String,
+            default: 'Please select...',
+        },
+
+        noOptionsMessage: {
+            type: String,
+            default: 'No options found',
         },
     },
 
     data() {
         return {
             searchQuery: '',
+            inputIsActive: false,
+
             selectMenuIsOpen: false,
-
-            menuOptions: [
-                { value: 1, label: 'Jack' },
-                { value: 2, label: 'Rich' },
-                { value: 3, label: 'Robin' },
-                { value: 4, label: 'Sam', disabled: true },
-                { value: 5, label: 'James' },
-                { value: 6, label: 'Gary' },
-            ],
-
             selectedMenuOptions: [],
         };
     },
@@ -101,12 +138,30 @@ export default {
             return !! this.searchQuery.length;
         },
 
+        selectedMenuOptionValues() {
+            return this.selectedMenuOptions.map(({ value }) => value);
+        },
+
         firstSelectedMenuOption() {
             if (! this.hasValue) {
                 return null;
             }
 
             return this.selectedMenuOptions[0];
+        },
+
+        filteredOptions() {
+            let options = this.options;
+
+            options = options.filter(({ value }) => {
+                return ! this.selectedMenuOptionValues.includes(value);
+            });
+
+            return options.filter(({ label }) => {
+                return label.toUpperCase().indexOf(
+                    this.searchQuery.toUpperCase()
+                ) !== -1;
+            });
         },
     },
 
@@ -117,6 +172,18 @@ export default {
             }
 
             this.$refs.input.setAttribute('size', searchQuery.length + 2);
+            this.$emit('search-change', searchQuery);
+        },
+
+        selectedMenuOptionValues(selectedMenuOptionValues) {
+            if (this.multiple) {
+                return this.$emit('input', selectedMenuOptionValues);
+            }
+
+            return this.$emit('input', selectedMenuOptionValues.length
+                ? selectedMenuOptionValues[0]
+                : null
+            );
         },
     },
 
@@ -124,15 +191,36 @@ export default {
         ['click', 'touchstart'].forEach(action => {
             document.addEventListener(action, this.closeSelectMenu);
         });
+
+        document.addEventListener('keydown', this.keydownListener);
     },
 
     destroyed() {
         ['click', 'touchstart'].forEach(action => {
             document.removeEventListener(action, this.closeSelectMenu);
         });
+
+        document.removeEventListener('keydown', this.keydownListener);
     },
 
     methods: {
+        blurInput() {
+            this.searchQuery = '';
+            this.inputIsActive = false;
+        },
+
+        keydownListener(e) {
+            // arrow down
+            if (e.keyCode === 40 && this.inputIsActive && ! this.selectMenuIsOpen) {
+                this.selectMenuIsOpen = true;
+            }
+
+            // Escape
+            if (e.keyCode === 27 && this.selectMenuIsOpen) {
+                this.selectMenuIsOpen = false;
+            }
+        },
+
         openSelectMenu() {
             if (! this.selectMenuIsOpen) {
                 this.selectMenuIsOpen = true;
@@ -154,7 +242,7 @@ export default {
             this.searchQuery = '';
             this.selectMenuIsOpen = false;
 
-            if (this.isMultiple) {
+            if (this.multiple) {
                 return this.selectedMenuOptions.push(option);
             }
 

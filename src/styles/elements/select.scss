@@ -167,9 +167,50 @@
         content: '';
         display: block;
         position: absolute;
-        position: absolute;
         border-left: 5px solid transparent;
         border-right: 5px solid transparent;
         border-top: 5px solid $multiselect-arrow-color;
+    }
+}
+
+.multiselect-loader {
+    display: block;
+    cursor: pointer;
+    position: relative;
+    width: calc(#{$multiselect-min-height} - 2px);
+    height: calc(#{$multiselect-min-height} - 2px);
+
+    > div {
+        margin: 8px;
+        display: block;
+        border-width: 2px;
+        position: absolute;
+        border-style: solid;
+        border-radius: 100px;
+        width: calc(#{$multiselect-min-height} - 18px);
+        height: calc(#{$multiselect-min-height} - 18px);
+        border-color: $multiselect-loader-color transparent transparent transparent;
+        animation: multiselect-loader 1200ms cubic-bezier(0.5, 0, 0.5, 1) infinite;
+
+        &:nth-child(1) {
+            animation-delay: -450ms;
+        }
+
+        &:nth-child(2) {
+            animation-delay: -300ms;
+        }
+
+        &:nth-child(3) {
+            animation-delay: -150ms;
+        }
+    }
+}
+
+@keyframes multiselect-loader {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
     }
 }
