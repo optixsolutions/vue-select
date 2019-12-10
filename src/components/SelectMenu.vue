@@ -184,15 +184,17 @@ export default {
         },
 
         toggleSelectedOption(option) {
-            if (this.optionIsDisabled(option)) {
-                return;
-            }
+            if (option) {
+                if (this.optionIsDisabled(option)) {
+                    return;
+                }
 
-            if (this.optionIsSelected(option.value)) {
-                return this.$emit('deselect-option', option);
-            }
+                if (this.optionIsSelected(option.value)) {
+                    return this.$emit('deselect-option', option);
+                }
 
-            this.$emit('select-option', option);
+                this.$emit('select-option', option);
+            }
         },
 
         scrollToOption(index) {

@@ -6,6 +6,7 @@
 `multiple` - Boolean (default false)
 `searchable` - Boolean (default true)
 `hide-selected` - Boolean (default false)
+`open-direction` - String ['auto', 'down', 'up'] (default 'auto')
 
 ## Events
 

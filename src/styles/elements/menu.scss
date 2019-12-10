@@ -1,11 +1,25 @@
+.multiselect-select {
+    &.multiselect-open-up {
+        .multiselect-select-menu {
+            bottom: 100%;
+        }
+    }
+
+    &.multiselect-open-down {
+        .multiselect-select-menu {
+            top: 100%;
+        }
+    }
+}
+
 .multiselect-select-menu {
-    top: 100%;
     z-index: 1;
     width: 100%;
     margin-top: 8px;
+    position: absolute;
     border-radius: 4px;
     margin-bottom: 8px;
-    position: absolute;
+    box-sizing: content-box;
     box-shadow: $multiselect-menu-box-shadow;
     background-color: $multiselect-menu-background-color;
 }

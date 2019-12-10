@@ -1,6 +1,11 @@
 <template>
     <div class="multiselect-reset">
-        <div ref="multiselect" class="multiselect-select" @click="openSelectMenu">
+        <div
+            ref="multiselect"
+            class="multiselect-select"
+            :class="multiselectClass"
+            @click="openSelectMenu"
+        >
             <div class="multiselect-select-control">
                 <div class="multiselect-value-container">
                     <div
@@ -58,6 +63,7 @@
 
             <select-menu
                 v-if="selectMenuIsOpen"
+                ref="multiselectMenu"
                 :options="filteredOptions"
                 :selected-options="selectedMenuOptions"
                 :no-options-message="noOptionsMessage"
@@ -78,6 +84,21 @@
 
 <script>
 import SelectMenu from './SelectMenu';
+
+// const throttle = (callback, limit) => {
+//     let wait = false;
+
+//     return () => {
+//         if (! wait) {
+//             callback.call();
+//             wait = true;
+
+//             setTimeout(() => {
+//                 wait = false;
+//             }, limit);
+//         }
+//     };
+// };
 
 export default {
     components: { SelectMenu },
@@ -123,6 +144,14 @@ export default {
             default: 'Please select...',
         },
 
+        openDirection: {
+            type: String,
+            default: 'auto',
+            validator(value) {
+                return ['auto', 'down', 'up'].indexOf(value) !== -1;
+            },
+        },
+
         noOptionsMessage: {
             type: String,
             default: 'No options found',
@@ -133,6 +162,7 @@ export default {
         return {
             searchQuery: '',
             inputIsActive: false,
+            multiselectClass: null,
 
             selectMenuIsOpen: false,
             selectedMenuOptions: [],
@@ -237,6 +267,24 @@ export default {
             }
         },
 
+        setMenuPosition() {
+            if (this.openDirection === 'auto') {
+                const selectRect = this.$refs.multiselect.getBoundingClientRect();
+                const menuRect = this.$refs.multiselectMenu.$el.getBoundingClientRect();
+
+                if (
+                    (selectRect.y + selectRect.height + menuRect.height)
+                    > window.innerHeight
+                ) {
+                    return this.multiselectClass = 'multiselect-open-up';
+                }
+
+                return this.multiselectClass = 'multiselect-open-down';
+            }
+
+            return this.multiselectClass = `multiselect-open-${this.openDirection}`;
+        },
+
         blurInput() {
             this.searchQuery = '';
             this.inputIsActive = false;
@@ -245,7 +293,11 @@ export default {
         openSelectMenu() {
             if (! this.selectMenuIsOpen) {
                 this.selectMenuIsOpen = true;
-                this.$refs.input.focus();
+
+                this.$nextTick(() => {
+                    this.setMenuPosition();
+                    this.$refs.input.focus();
+                });
             }
         },
 
