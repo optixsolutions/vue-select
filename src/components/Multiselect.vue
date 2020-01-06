@@ -17,18 +17,18 @@
 
                     <template v-if="hasValue && multiple">
                         <div
-                            v-for="selectedMenuOption in selectedMenuOptions"
-                            :key="selectedMenuOption.value"
+                            v-for="selectedOption in selectedOptions"
+                            :key="selectedOption[optionIdentifier]"
                             class="multiselect-multi-value"
                             @click.stop
                         >
                             <div class="multiselect-multi-value-label">
-                                {{ selectedMenuOption.label }}
+                                {{ selectedOption[optionLabel] }}
                             </div>
 
                             <div
                                 class="multiselect-multi-value-remove"
-                                @click="deselectOption(selectedMenuOption)"
+                                @click="deselectOption(selectedOption)"
                             />
                         </div>
                     </template>
@@ -37,7 +37,7 @@
                         v-if="! hasSearchQuery && hasValue && ! multiple"
                         class="multiselect-single-value"
                     >
-                        {{ firstSelectedMenuOption.label }}
+                        {{ firstSelectedOption[optionLabel] }}
                     </div>
 
                     <div class="multiselect-input">
@@ -46,8 +46,8 @@
                             ref="input"
                             v-model="searchQuery"
                             size="2"
-                            @focus="inputIsActive = true"
                             @blur="blurInput"
+                            @focus="inputIsActive = true"
                         >
                     </div>
                 </div>
@@ -65,7 +65,8 @@
                 v-if="selectMenuIsOpen"
                 ref="multiselectMenu"
                 :options="filteredOptions"
-                :selected-options="selectedMenuOptions"
+                :selected-options="selectedOptions"
+                :option-identifier="optionIdentifier"
                 :no-options-message="noOptionsMessage"
                 @select-option="selectOption"
                 @deselect-option="deselectOption"
@@ -73,7 +74,7 @@
                 <template #menu-option="{ option, classes }">
                     <slot name="menu-option" v-bind="{ option, classes }">
                         <div class="multiselect-select-menu-option" :class="classes">
-                            {{ option.label }}
+                            {{ option[optionLabel] }}
                         </div>
                     </slot>
                 </template>
@@ -119,6 +120,16 @@ export default {
             default: () => [],
         },
 
+        optionIdentifier: {
+            type: [ String, Number],
+            default: 'value',
+        },
+
+        optionLabel: {
+            type: String,
+            default: 'label',
+        },
+
         loading: {
             type: Boolean,
             default: false,
@@ -148,13 +159,15 @@ export default {
             type: String,
             default: 'auto',
             validator(value) {
-                return ['auto', 'down', 'up'].indexOf(value) !== -1;
+                return [
+                    'auto', 'down', 'up',
+                ].indexOf(value) !== -1;
             },
         },
 
         noOptionsMessage: {
             type: String,
-            default: 'No options found',
+            default: 'No options found.',
         },
     },
 
@@ -165,43 +178,47 @@ export default {
             multiselectClass: null,
 
             selectMenuIsOpen: false,
-            selectedMenuOptions: [],
+            selectedOptions: [],
         };
     },
 
     computed: {
         hasValue() {
-            return !! this.selectedMenuOptions.length;
+            return !! this.selectedOptions.length;
         },
 
         hasSearchQuery() {
             return !! this.searchQuery.length;
         },
 
-        selectedMenuOptionValues() {
-            return this.selectedMenuOptions.map(({ value }) => value);
+        selectedOptionValues() {
+            return this.selectedOptions.map(option => {
+                return option[this.optionIdentifier];
+            });
         },
 
-        firstSelectedMenuOption() {
+        firstSelectedOption() {
             if (! this.hasValue) {
                 return null;
             }
 
-            return this.selectedMenuOptions[0];
+            return this.selectedOptions[0];
         },
 
         filteredOptions() {
             let options = this.options;
 
             if (this.hideSelected) {
-                options = options.filter(({ value }) => {
-                    return ! this.selectedMenuOptionValues.includes(value);
+                options = options.filter(option => {
+                    return ! this.selectedOptionValues.includes(
+                        option[this.optionIdentifier]
+                    );
                 });
             }
 
             if (this.searchable) {
-                options = options.filter(({ label }) => {
-                    return label.toUpperCase().indexOf(
+                options = options.filter(option => {
+                    return option[this.optionLabel].toUpperCase().indexOf(
                         this.searchQuery.toUpperCase()
                     ) !== -1;
                 });
@@ -221,13 +238,13 @@ export default {
             this.$emit('search-change', searchQuery);
         },
 
-        selectedMenuOptionValues(selectedMenuOptionValues) {
+        selectedOptionValues(selectedOptionValues) {
             if (this.multiple) {
-                return this.$emit('input', selectedMenuOptionValues);
+                return this.$emit('input', selectedOptionValues);
             }
 
-            return this.$emit('input', selectedMenuOptionValues.length
-                ? selectedMenuOptionValues[0]
+            return this.$emit('input', selectedOptionValues.length
+                ? selectedOptionValues[0]
                 : null
             );
         },
@@ -258,7 +275,7 @@ export default {
 
             // Delete
             if (e.keyCode === 8 && this.inputIsActive && this.hasValue && ! this.multiple) {
-                this.selectedMenuOptions = [];
+                this.selectedOptions = [];
             }
 
             // Escape
@@ -317,18 +334,18 @@ export default {
             this.$emit('select', option);
 
             if (this.multiple) {
-                return this.selectedMenuOptions.push(option);
+                return this.selectedOptions.push(option);
             }
 
-            this.selectedMenuOptions = [ option ];
+            this.selectedOptions = [ option ];
         },
 
         deselectOption(option) {
             this.selectMenuIsOpen = false;
             this.$emit('deselect', option);
 
-            this.selectedMenuOptions = this.selectedMenuOptions.filter(({ value }) => {
-                return value !== option.value;
+            this.selectedOptions = this.selectedOptions.filter(selectedOption => {
+                return selectedOption[this.optionIdentifier] !== option[this.optionIdentifier];
             });
         },
     },

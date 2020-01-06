@@ -8,7 +8,7 @@
             <template v-else>
                 <div
                     v-for="(option, index) in options"
-                    :key="option.value"
+                    :key="option[optionIdentifier]"
                     :ref="`option-${index}`"
                     @click.stop="toggleSelectedOption(option)"
                     @mouseout="clearFocusedOption"
@@ -19,8 +19,8 @@
                         v-bind="{
                             option,
                             classes: {
-                                'focused': optionIsFocused(option.value),
-                                'selected': optionIsSelected(option.value),
+                                'focused': optionIsFocused(option[optionIdentifier]),
+                                'selected': optionIsSelected(option[optionIdentifier]),
                                 'disabled': optionIsDisabled(option),
                             }
                         }"
@@ -37,6 +37,11 @@ export default {
         options: {
             type: Array,
             default: () => [],
+        },
+
+        optionIdentifier: {
+            type: [ String, Number],
+            required: true,
         },
 
         selectedOptions: {
@@ -58,7 +63,9 @@ export default {
 
     computed: {
         selectedOptionValues() {
-            return this.selectedOptions.map(({ value }) => value);
+            return this.selectedOptions.map(option => {
+                return option[this.optionIdentifier];
+            });
         },
 
         hasOptions() {
@@ -73,8 +80,8 @@ export default {
 
         focusedOptionIndex() {
             if (this.focusedOption) {
-                return this.options.findIndex(({ value }) => {
-                    return value === this.focusedOption.value;
+                return this.options.findIndex(option => {
+                    return option[this.optionIdentifier] === this.focusedOption[this.optionIdentifier];
                 });
             }
 
@@ -172,7 +179,7 @@ export default {
 
         optionIsFocused(value) {
             return this.focusedOption
-                && (this.focusedOption.value === value);
+                && (this.focusedOption[this.optionIdentifier] === value);
         },
 
         optionIsSelected(value) {
@@ -189,7 +196,7 @@ export default {
                     return;
                 }
 
-                if (this.optionIsSelected(option.value)) {
+                if (this.optionIsSelected(option[this.optionIdentifier])) {
                     return this.$emit('deselect-option', option);
                 }
 

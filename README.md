@@ -2,11 +2,16 @@
 
 `id` - String
 `v-model` - Array / String / Number of option values
-`options` - Array
-`multiple` - Boolean (default false)
-`searchable` - Boolean (default true)
-`hide-selected` - Boolean (default false)
-`open-direction` - String ['auto', 'down', 'up'] (default 'auto')
+`options` - Array (required)
+`option-identifier` - String / Number (default: value)
+`option-label` - String (default: label)
+`loading` - Boolean, shows loading indicator when set to `true`
+`multiple` - Boolean (default: false)
+`searchable` - Boolean (default: true)
+`hide-selected` - Boolean (default: false)
+`open-direction` - String ['auto', 'down', 'up'] (default: 'auto')
+`placeholder` - String (default: Please select...)
+`no-options-message` - String (default: No options found.)
 
 ## Events
 
