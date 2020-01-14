@@ -1,6 +1,6 @@
 <template>
     <div class="multiselect-select-menu">
-        <div class="multiselect-select-menu-inner">
+        <div ref="scrollContent" class="multiselect-select-menu-inner">
             <div v-if="! hasOptions" class="multiselect-select-menu-no-options">
                 {{ noOptionsMessage }}
             </div>
@@ -27,6 +27,11 @@
                     />
                 </div>
             </template>
+
+            <slot
+                v-if="loadingMore"
+                name="menu-loader"
+            />
         </div>
     </div>
 </template>
@@ -49,6 +54,11 @@ export default {
             default: () => [],
         },
 
+        loadingMore: {
+            type: Boolean,
+            default: false,
+        },
+
         noOptionsMessage: {
             type: String,
             required: true,
@@ -58,6 +68,10 @@ export default {
     data() {
         return {
             focusedOption: null,
+
+            lastScroll: 0,
+            scrollableHeight: 0,
+            scrollLoaderThreshold: 60,
         };
     },
 
@@ -95,10 +109,20 @@ export default {
 
     created() {
         document.addEventListener('keydown', this.keydownListener);
+
+    },
+
+    mounted() {
+        this.$refs.scrollContent.addEventListener('scroll', this.scrollListener);
+
+        this.scrollableHeight = (
+            this.$refs.scrollContent.scrollHeight - this.$refs.scrollContent.clientHeight
+        );
     },
 
     beforeDestroy() {
         document.removeEventListener('keydown', this.keydownListener);
+        this.$refs.scrollContent.removeEventListener('keydown', this.scrollListener);
     },
 
     methods: {
@@ -130,6 +154,20 @@ export default {
                     this.setFocusedOption(this.options[nextIndex]);
                     this.scrollToOption(nextIndex);
                 }
+            }
+        },
+
+        scrollListener() {
+            const currentScroll = this.$refs.scrollContent.scrollTop;
+
+            if (
+                ! this.loadingMore
+                && currentScroll > this.lastScroll
+                && (this.scrollableHeight - currentScroll) < this.scrollLoaderThreshold
+            ) {
+                this.lastScroll = currentScroll;
+
+                this.$emit('load-more');
             }
         },
 

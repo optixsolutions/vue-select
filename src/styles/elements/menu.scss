@@ -32,6 +32,7 @@
     max-height: $multiselect-menu-max-height;
 }
 
+.multiselect-select-menu-loading,
 .multiselect-select-menu-no-options {
     text-align: center;
     padding: $multiselect-menu-option-padding;

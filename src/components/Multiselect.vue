@@ -65,9 +65,11 @@
                 v-if="selectMenuIsOpen"
                 ref="multiselectMenu"
                 :options="filteredOptions"
+                :loading-more="loadingMore"
                 :selected-options="selectedOptions"
                 :option-identifier="optionIdentifier"
                 :no-options-message="noOptionsMessage"
+                @load-more="$emit('load-more')"
                 @select-option="selectOption"
                 @deselect-option="deselectOption"
             >
@@ -75,6 +77,14 @@
                     <slot name="menu-option" v-bind="{ option, classes }">
                         <div class="multiselect-select-menu-option" :class="classes">
                             {{ option[optionLabel] }}
+                        </div>
+                    </slot>
+                </template>
+
+                <template #menu-loader>
+                    <slot name="menu-loader">
+                        <div class="multiselect-select-menu-loading">
+                            Loading...
                         </div>
                     </slot>
                 </template>
@@ -131,6 +141,11 @@ export default {
         },
 
         loading: {
+            type: Boolean,
+            default: false,
+        },
+
+        loadingMore: {
             type: Boolean,
             default: false,
         },
