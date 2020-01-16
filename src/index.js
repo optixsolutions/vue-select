@@ -1,7 +1,7 @@
-import Multiselect from './components/Multiselect.vue';
+import VueSelect from './components/Select.vue';
 import './styles/index.scss';
 
 export default function install(Vue) {
     // Register components
-    Vue.component('multiselect', Multiselect);
+    Vue.component('vue-select', VueSelect);
 }

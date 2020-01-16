@@ -29,7 +29,7 @@ export default [
         output: [
             {
                 file: pkg.main,
-                name: 'Multiselect',
+                name: 'VueSelect',
                 format: 'umd',
                 exports: 'named',
             },
@@ -44,8 +44,8 @@ export default [
     {
         input: 'src/index.js',
         output: {
-            file: 'dist/multiselect.min.js',
-            name: 'Multiselect',
+            file: 'dist/vue-select.min.js',
+            name: 'VueSelect',
             format: 'umd',
             exports: 'named',
             sourcemap: true,
@@ -58,7 +58,7 @@ export default [
     {
         input: 'src/styles/index.scss',
         output: {
-            file: 'dist/multiselect.min.css',
+            file: 'dist/vue-select.min.css',
             format: 'es',
         },
         plugins: [

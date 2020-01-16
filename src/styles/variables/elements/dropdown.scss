@@ -1,0 +1,17 @@
+$vue-dropdown-max-height: 300px !default;
+$vue-dropdown-background-color: $vs-white !default;
+$vue-dropdown-box-shadow: rgba(0, 0, 0, 0.1) 0px 0px 0px 1px,
+                            rgba(0, 0, 0, 0.1) 0px 4px 11px !default;
+
+$vue-dropdown-option-padding: 6px 10px !default;
+$vue-dropdown-option-color: $vs-grey-800 !default;
+$vue-dropdown-option-hover-background-color: $vs-blue-100 !default;
+
+$vue-dropdown-option-selected-color: $vs-white !default;
+$vue-dropdown-option-selected-background-color: $vs-blue-500 !default;
+
+$vue-dropdown-option-selected-focused-color: $vs-white !default;
+$vue-dropdown-option-selected-focused-background-color: $vs-blue-600 !default;
+
+$vue-dropdown-option-disabled-color: $vs-grey-500 !default;
+$vue-dropdown-option-disabled-background-color: transparent !default;

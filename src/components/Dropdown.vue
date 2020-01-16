@@ -1,7 +1,7 @@
 <template>
-    <div class="multiselect-select-menu">
-        <div ref="scrollContent" class="multiselect-select-menu-inner">
-            <div v-if="! hasOptions" class="multiselect-select-menu-no-options">
+    <div class="vs-dropdown">
+        <div ref="scrollContent" class="vs-dropdown-scroll">
+            <div v-if="! hasOptions" class="vs-dropdown-no-options">
                 {{ noOptionsMessage }}
             </div>
 
@@ -15,7 +15,7 @@
                     @mouseenter="setFocusedOption(option)"
                 >
                     <slot
-                        name="menu-option"
+                        name="dropdown-option"
                         v-bind="{
                             option,
                             classes: {
@@ -30,7 +30,7 @@
 
             <slot
                 v-if="loadingMore"
-                name="menu-loader"
+                name="dropdown-loader"
             />
         </div>
     </div>

@@ -1,16 +1,16 @@
 <template>
-    <div class="multiselect-reset">
+    <div class="vs-reset">
         <div
-            ref="multiselect"
-            class="multiselect-select"
-            :class="multiselectClass"
-            @click="openSelectMenu"
+            ref="select"
+            class="vs-select"
+            :class="selectClass"
+            @click="showDropdown"
         >
-            <div class="multiselect-select-control">
-                <div class="multiselect-value-container">
+            <div class="vs-select-control">
+                <div class="vs-select-container">
                     <div
                         v-if="! hasValue && ! hasSearchQuery"
-                        class="multiselect-placeholder"
+                        class="vs-select-placeholder"
                     >
                         {{ placeholder }}
                     </div>
@@ -19,15 +19,15 @@
                         <div
                             v-for="selectedOption in selectedOptions"
                             :key="selectedOption[optionIdentifier]"
-                            class="multiselect-multi-value"
+                            class="vs-select-multiple-value"
                             @click.stop
                         >
-                            <div class="multiselect-multi-value-label">
+                            <div class="vs-select-multiple-value-label">
                                 {{ selectedOption[optionLabel] }}
                             </div>
 
                             <div
-                                class="multiselect-multi-value-remove"
+                                class="vs-select-multiple-value-remove"
                                 @click="deselectOption(selectedOption)"
                             />
                         </div>
@@ -35,12 +35,12 @@
 
                     <div
                         v-if="! hasSearchQuery && hasValue && ! multiple"
-                        class="multiselect-single-value"
+                        class="vs-select-single-value"
                     >
                         {{ firstSelectedOption[optionLabel] }}
                     </div>
 
-                    <div class="multiselect-input">
+                    <div class="vs-select-input">
                         <input
                             :id="id"
                             ref="input"
@@ -52,18 +52,21 @@
                     </div>
                 </div>
 
-                <div class="multiselect-actions">
-                    <div v-if="loading" class="multiselect-loader">
+                <div class="vs-select-actions">
+                    <div v-if="loading" class="vs-select-loader">
                         <div v-for="i in 4" :key="i" />
                     </div>
 
-                    <div v-if="! loading" class="multiselect-arrow" />
+                    <div
+                        v-else
+                        class="vs-select-arrow"
+                    />
                 </div>
             </div>
 
-            <select-menu
-                v-if="selectMenuIsOpen"
-                ref="multiselectMenu"
+            <select-dropdown
+                v-if="dropdownIsVisible"
+                ref="dropdown"
                 :options="filteredOptions"
                 :loading-more="loadingMore"
                 :selected-options="selectedOptions"
@@ -73,46 +76,31 @@
                 @select-option="selectOption"
                 @deselect-option="deselectOption"
             >
-                <template #menu-option="{ option, classes }">
-                    <slot name="menu-option" v-bind="{ option, classes }">
-                        <div class="multiselect-select-menu-option" :class="classes">
+                <template #dropdown-option="{ option, classes }">
+                    <slot name="dropdown-option" v-bind="{ option, classes }">
+                        <div class="vs-dropdown-option" :class="classes">
                             {{ option[optionLabel] }}
                         </div>
                     </slot>
                 </template>
 
-                <template #menu-loader>
-                    <slot name="menu-loader">
-                        <div class="multiselect-select-menu-loading">
+                <template #dropdown-loader>
+                    <slot name="dropdown-loader">
+                        <div class="vs-dropdown-loader">
                             Loading...
                         </div>
                     </slot>
                 </template>
-            </select-menu>
+            </select-dropdown>
         </div>
     </div>
 </template>
 
 <script>
-import SelectMenu from './SelectMenu';
-
-// const throttle = (callback, limit) => {
-//     let wait = false;
-
-//     return () => {
-//         if (! wait) {
-//             callback.call();
-//             wait = true;
-
-//             setTimeout(() => {
-//                 wait = false;
-//             }, limit);
-//         }
-//     };
-// };
+import SelectDropdown from './Dropdown';
 
 export default {
-    components: { SelectMenu },
+    components: { SelectDropdown },
 
     props: {
         value: {
@@ -190,9 +178,9 @@ export default {
         return {
             searchQuery: '',
             inputIsActive: false,
-            multiselectClass: null,
+            selectClass: null,
 
-            selectMenuIsOpen: false,
+            dropdownIsVisible: false,
             selectedOptions: [],
         };
     },
@@ -246,7 +234,7 @@ export default {
     watch: {
         searchQuery(searchQuery) {
             if (this.hasSearchQuery) {
-                this.openSelectMenu();
+                this.showDropdown();
             }
 
             this.$refs.input.setAttribute('size', searchQuery.length + 2);
@@ -267,7 +255,7 @@ export default {
 
     created() {
         ['click', 'touchstart'].forEach(action => {
-            document.addEventListener(action, this.closeSelectMenu);
+            document.addEventListener(action, this.hideDropdown);
         });
 
         document.addEventListener('keydown', this.keydownListener);
@@ -275,7 +263,7 @@ export default {
 
     destroyed() {
         ['click', 'touchstart'].forEach(action => {
-            document.removeEventListener(action, this.closeSelectMenu);
+            document.removeEventListener(action, this.hideDropdown);
         });
 
         document.removeEventListener('keydown', this.keydownListener);
@@ -284,8 +272,8 @@ export default {
     methods: {
         keydownListener(e) {
             // Arrow down
-            if (e.keyCode === 40 && this.inputIsActive && ! this.selectMenuIsOpen) {
-                this.selectMenuIsOpen = true;
+            if (e.keyCode === 40 && this.inputIsActive && ! this.dropdownIsVisible) {
+                this.dropdownIsVisible = true;
             }
 
             // Delete
@@ -294,27 +282,24 @@ export default {
             }
 
             // Escape
-            if (e.keyCode === 27 && this.selectMenuIsOpen) {
-                this.selectMenuIsOpen = false;
+            if (e.keyCode === 27 && this.dropdownIsVisible) {
+                this.dropdownIsVisible = false;
             }
         },
 
-        setMenuPosition() {
+        setDropdownPosition() {
             if (this.openDirection === 'auto') {
-                const selectRect = this.$refs.multiselect.getBoundingClientRect();
-                const menuRect = this.$refs.multiselectMenu.$el.getBoundingClientRect();
+                const selectRect = this.$refs.select.getBoundingClientRect();
+                const dropdownRect = this.$refs.dropdown.$el.getBoundingClientRect();
 
-                if (
-                    (selectRect.y + selectRect.height + menuRect.height)
-                    > window.innerHeight
-                ) {
-                    return this.multiselectClass = 'multiselect-open-up';
+                if ((selectRect.y + selectRect.height + dropdownRect.height) > window.innerHeight) {
+                    return this.selectClass = 'vs-open-up';
                 }
 
-                return this.multiselectClass = 'multiselect-open-down';
+                return this.selectClass = 'vs-open-down';
             }
 
-            return this.multiselectClass = `multiselect-open-${this.openDirection}`;
+            return this.selectClass = `vs-open-${this.openDirection}`;
         },
 
         blurInput() {
@@ -322,30 +307,30 @@ export default {
             this.inputIsActive = false;
         },
 
-        openSelectMenu() {
-            if (! this.selectMenuIsOpen) {
-                this.selectMenuIsOpen = true;
+        showDropdown() {
+            if (! this.dropdownIsVisible) {
+                this.dropdownIsVisible = true;
 
                 this.$nextTick(() => {
-                    this.setMenuPosition();
+                    this.setDropdownPosition();
                     this.$refs.input.focus();
                 });
             }
         },
 
-        closeSelectMenu(event) {
+        hideDropdown(event) {
             if (
-                this.selectMenuIsOpen
-                && (this.$refs.multiselect !== event.target)
-                && ! this.$refs.multiselect.contains(event.target)
+                this.dropdownIsVisible
+                && (this.$refs.select !== event.target)
+                && ! this.$refs.select.contains(event.target)
             ) {
-                this.selectMenuIsOpen = false;
+                this.dropdownIsVisible = false;
             }
         },
 
         selectOption(option) {
             this.searchQuery = '';
-            this.selectMenuIsOpen = false;
+            this.dropdownIsVisible = false;
             this.$emit('select', option);
 
             if (this.multiple) {
@@ -356,7 +341,7 @@ export default {
         },
 
         deselectOption(option) {
-            this.selectMenuIsOpen = false;
+            this.dropdownIsVisible = false;
             this.$emit('deselect', option);
 
             this.selectedOptions = this.selectedOptions.filter(selectedOption => {

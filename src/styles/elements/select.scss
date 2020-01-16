@@ -1,63 +1,63 @@
-.multiselect-select {
+.vs-select {
     position: relative;
 }
 
-.multiselect-select-control {
+.vs-select-control {
     display: flex;
     cursor: default;
     flex-wrap: wrap;
     position: relative;
     align-items: center;
     justify-content: space-around;
-    min-height: $multiselect-min-height;
-    border-radius: $multiselect-border-radius;
-    border: 1px solid $multiselect-border-color;
-    background-color: $multiselect-background-color;
+    min-height: $vs-select-min-height;
+    border-radius: $vs-select-border-radius;
+    border: 1px solid $vs-select-border-color;
+    background-color: $vs-select-background-color;
 
     &:hover {
-        border-color: $multiselect-border-hover-color;
-        background-color: $multiselect-background-hover-color;
+        border-color: $vs-select-border-hover-color;
+        background-color: $vs-select-background-hover-color;
 
-        .multiselect-arrow {
+        .vs-select-arrow {
             &:before {
-                border-top-color: $multiselect-arrow-hover-color;
+                border-top-color: $vs-select-arrow-hover-color;
             }
         }
 
-        .multiselect-placeholder {
-            color: $multiselect-placeholder-hover-color;
+        .vs-select-placeholder {
+            color: $vs-select-placeholder-hover-color;
         }
 
-        .multiselect-single-value {
-            color: $multiselect-single-value-hover-color;
+        .vs-select-single {
+            color: $vs-select-single-value-hover-color;
         }
     }
 }
 
-.multiselect-value-container {
+.vs-select-container {
     flex: 1 1 0%;
     display: flex;
     flex-wrap: wrap;
     overflow: hidden;
     position: relative;
     align-items: center;
-    padding: $multiselect-value-padding;
+    padding: $vs-select-value-padding;
 }
 
-.multiselect-placeholder {
+.vs-select-placeholder {
     top: 50%;
     margin-left: 2px;
     margin-right: 2px;
     position: absolute;
     transform: translateY(-50%);
-    color: $multiselect-placeholder-color;
+    color: $vs-select-placeholder-color;
 }
 
-.multiselect-input {
+.vs-select-input {
     margin: 2px;
     padding-top: 2px;
     padding-bottom: 2px;
-    color: $multiselect-input-color;
+    color: $vs-select-input-color;
 
     input {
         outline: 0;
@@ -70,7 +70,7 @@
     }
 }
 
-.multiselect-single-value {
+.vs-select-single-value {
     top: 50%;
     margin-left: 2px;
     overflow: hidden;
@@ -80,41 +80,41 @@
     text-overflow: ellipsis;
     max-width: calc(100% - 8px);
     transform: translateY(-50%);
-    color: $multiselect-single-value-color;
+    color: $vs-select-single-value-color;
 }
 
-.multiselect-multi-value {
+.vs-select-multiple-value {
     margin: 2px;
     min-width: 0;
     display: flex;
-    font-size: $multiselect-multi-value-font-size;
-    border-radius: $multiselect-multi-value-border-radius;
-    background-color: $multiselect-multi-value-background-color;
+    font-size: $vs-select-multiple-value-font-size;
+    border-radius: $vs-select-multiple-value-border-radius;
+    background-color: $vs-select-multiple-value-background-color;
 
     &:hover {
-        background-color: $multiselect-multi-value-hover-background-color;
+        background-color: $vs-select-multiple-value-hover-background-color;
     }
 }
 
-.multiselect-multi-value-label {
+.vs-select-multiple-value-label {
     overflow: hidden;
     user-select: none;
     white-space: nowrap;
     text-overflow: ellipsis;
-    color: $multiselect-multi-value-color;
-    padding: $multiselect-multi-value-label-padding;
-    border-radius: $multiselect-multi-value-border-radius;
+    color: $vs-select-multiple-value-color;
+    padding: $vs-select-multiple-value-label-padding;
+    border-radius: $vs-select-multiple-value-border-radius;
 }
 
-.multiselect-multi-value-remove {
+.vs-select-multiple-value-remove {
     display: flex;
     min-width: 27px;
     cursor: pointer;
     position: relative;
     align-items: center;
     justify-content: center;
-    padding: $multiselect-multi-value-remove-padding;
-    border-radius: $multiselect-multi-value-border-radius;
+    padding: $vs-select-multiple-value-remove-padding;
+    border-radius: $vs-select-multiple-value-border-radius;
 
     &:before,
     &:after {
@@ -123,7 +123,7 @@
         content: '';
         height: 10px;
         position: absolute;
-        background-color: $multiselect-multi-value-remove-color;
+        background-color: $vs-select-multiple-value-remove-color;
     }
 
     &:before {
@@ -135,31 +135,31 @@
     }
 
     &:hover {
-        color: $multiselect-multi-value-remove-hover-color;
-        background-color: $multiselect-multi-value-remove-hover-background-color;
+        color: $vs-select-multiple-value-remove-hover-color;
+        background-color: $vs-select-multiple-value-remove-hover-background-color;
 
         &:before,
         &:after {
-            background-color: $multiselect-multi-value-remove-hover-color;
+            background-color: $vs-select-multiple-value-remove-hover-color;
         }
     }
 }
 
-.multiselect-actions {
+.vs-select-actions {
     display: flex;
     flex-shrink: 0;
     align-self: stretch;
     align-items: center;
 }
 
-.multiselect-arrow {
+.vs-select-arrow {
     display: flex;
     cursor: pointer;
     position: relative;
     align-items: center;
     justify-content: center;
-    width: calc(#{$multiselect-min-height} - 2px);
-    height: calc(#{$multiselect-min-height} - 2px);
+    width: calc(#{$vs-select-min-height} - 2px);
+    height: calc(#{$vs-select-min-height} - 2px);
 
     &:before {
         width: 0;
@@ -169,16 +169,16 @@
         position: absolute;
         border-left: 5px solid transparent;
         border-right: 5px solid transparent;
-        border-top: 5px solid $multiselect-arrow-color;
+        border-top: 5px solid $vs-select-arrow-color;
     }
 }
 
-.multiselect-loader {
+.vs-select-loader {
     display: block;
     cursor: pointer;
     position: relative;
-    width: calc(#{$multiselect-min-height} - 2px);
-    height: calc(#{$multiselect-min-height} - 2px);
+    width: calc(#{$vs-select-min-height} - 2px);
+    height: calc(#{$vs-select-min-height} - 2px);
 
     > div {
         margin: 8px;
@@ -187,10 +187,10 @@
         position: absolute;
         border-style: solid;
         border-radius: 100px;
-        width: calc(#{$multiselect-min-height} - 18px);
-        height: calc(#{$multiselect-min-height} - 18px);
-        border-color: $multiselect-loader-color transparent transparent transparent;
-        animation: multiselect-loader 1200ms cubic-bezier(0.5, 0, 0.5, 1) infinite;
+        width: calc(#{$vs-select-min-height} - 18px);
+        height: calc(#{$vs-select-min-height} - 18px);
+        border-color: $vs-select-loader-color transparent transparent transparent;
+        animation: vs-loader 1200ms cubic-bezier(0.5, 0, 0.5, 1) infinite;
 
         &:nth-child(1) {
             animation-delay: -450ms;
@@ -206,7 +206,7 @@
     }
 }
 
-@keyframes multiselect-loader {
+@keyframes vs-loader {
     0% {
         transform: rotate(0deg);
     }

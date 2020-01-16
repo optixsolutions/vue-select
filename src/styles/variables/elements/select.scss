@@ -1,38 +1,37 @@
-$multiselect-min-height: 38px !default;
+$vs-select-min-height: 38px !default;
 
-$multiselect-value-padding: 2px 8px !default;
+$vs-select-value-padding: 2px 8px !default;
 
-$multiselect-border-color: $multiselect-grey-500 !default;
-$multiselect-border-hover-color: $multiselect-grey-600 !default;
-$multiselect-border-radius: $multiselect-border-radius-default !default;
+$vs-select-border-color: $vs-grey-500 !default;
+$vs-select-border-hover-color: $vs-grey-600 !default;
+$vs-select-border-radius: $vs-border-radius-default !default;
 
-$multiselect-background-color: $multiselect-white !default;
-$multiselect-background-hover-color: $multiselect-white !default;
+$vs-select-background-color: $vs-white !default;
+$vs-select-background-hover-color: $vs-white !default;
 
-$multiselect-arrow-color: $multiselect-grey-500 !default;
-$multiselect-arrow-hover-color: $multiselect-grey-600 !default;
+$vs-select-arrow-color: $vs-grey-500 !default;
+$vs-select-arrow-hover-color: $vs-grey-600 !default;
 
-$multiselect-loader-color: $multiselect-grey-400 !default;
+$vs-select-loader-color: $vs-grey-400 !default;
 
-$multiselect-input-color: $multiselect-grey-800 !default;
-$multiselect-placeholder-color: $multiselect-grey-500 !default;
-$multiselect-placeholder-hover-color: $multiselect-grey-600 !default;
+$vs-select-input-color: $vs-grey-800 !default;
+$vs-select-placeholder-color: $vs-grey-500 !default;
+$vs-select-placeholder-hover-color: $vs-grey-600 !default;
 
-$multiselect-single-value-color: $multiselect-grey-800 !default;
-$multiselect-single-value-hover-color: $multiselect-grey-900 !default;
+$vs-select-single-value-color: $vs-grey-800 !default;
+$vs-select-single-value-hover-color: $vs-grey-900 !default;
 
-$multiselect-multi-value-color: $multiselect-grey-800 !default;
-$multiselect-multi-value-font-size: $multiselect-font-size-sm !default;
-$multiselect-multi-value-border-radius: $multiselect-border-radius-default !default;
+$vs-select-multiple-value-color: $vs-grey-800 !default;
+$vs-select-multiple-value-font-size: $vs-font-size-sm !default;
+$vs-select-multiple-value-border-radius: $vs-border-radius-default !default;
 
-$multiselect-multi-value-background-color: $multiselect-blue-200 !default;
-$multiselect-multi-value-hover-background-color: $multiselect-blue-200 !default;
+$vs-select-multiple-value-background-color: $vs-blue-200 !default;
+$vs-select-multiple-value-hover-background-color: $vs-blue-200 !default;
 
-$multiselect-multi-value-label-padding: 3px 3px 3px 6px !default;
+$vs-select-multiple-value-label-padding: 3px 3px 3px 6px !default;
 
-$multiselect-multi-value-remove-padding: 0 4px !default;
-$multiselect-multi-value-remove-color: $multiselect-grey-800 !default;
-$multiselect-multi-value-remove-hover-color: $multiselect-grey-800 !default;
-$multiselect-multi-value-remove-hover-color: $multiselect-grey-800 !default;
-$multiselect-multi-value-remove-hover-background-color: $multiselect-blue-300 !default;
-
+$vs-select-multiple-value-remove-padding: 0 4px !default;
+$vs-select-multiple-value-remove-color: $vs-grey-800 !default;
+$vs-select-multiple-value-remove-hover-color: $vs-grey-800 !default;
+$vs-select-multiple-value-remove-hover-color: $vs-grey-800 !default;
+$vs-select-multiple-value-remove-hover-background-color: $vs-blue-300 !default;

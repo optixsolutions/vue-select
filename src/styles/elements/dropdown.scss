@@ -1,0 +1,74 @@
+.vs-select {
+    &.vs-open-up {
+        .vs-dropdown {
+            bottom: 100%;
+        }
+    }
+
+    &.vs-open-down {
+        .vs-dropdown {
+            top: 100%;
+        }
+    }
+}
+
+.vs-dropdown {
+    z-index: 1;
+    width: 100%;
+    margin-top: 8px;
+    position: absolute;
+    border-radius: 4px;
+    margin-bottom: 8px;
+    box-sizing: content-box;
+    box-shadow: $vue-dropdown-box-shadow;
+    background-color: $vue-dropdown-background-color;
+}
+
+.vs-dropdown-scroll {
+    overflow-y: auto;
+    padding-top: 4px;
+    position: relative;
+    padding-bottom: 4px;
+    max-height: $vue-dropdown-max-height;
+}
+
+.vs-dropdown-loader,
+.vs-dropdown-no-options {
+    text-align: center;
+    padding: $vue-dropdown-option-padding;
+}
+
+.vs-dropdown-option {
+    width: 100%;
+    display: block;
+    cursor: pointer;
+    user-select: none;
+    font-size: inherit;
+    background-color: transparent;
+    color: $vue-dropdown-option-color;
+    padding: $vue-dropdown-option-padding;
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+
+
+    &.focused {
+        &:not(.disabled) {
+            background-color: $vue-dropdown-option-hover-background-color;
+        }
+    }
+
+    &.selected {
+        color: $vue-dropdown-option-selected-color;
+        background-color: $vue-dropdown-option-selected-background-color;
+
+        &.focused {
+            color: $vue-dropdown-option-selected-focused-color;
+            background-color: $vue-dropdown-option-selected-focused-background-color;
+        }
+    }
+
+    &.disabled {
+        cursor: default;
+        color: $vue-dropdown-option-disabled-color;
+        background-color: $vue-dropdown-option-disabled-background-color;
+    }
+}
