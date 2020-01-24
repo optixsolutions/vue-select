@@ -214,7 +214,7 @@ export default {
             if (this.hideSelected) {
                 options = options.filter(option => {
                     return ! this.selectedOptionValues.includes(
-                        option[this.optionIdentifier]
+                        option[this.optionIdentifier],
                     );
                 });
             }
@@ -222,7 +222,7 @@ export default {
             if (this.searchable) {
                 options = options.filter(option => {
                     return option[this.optionLabel].toUpperCase().indexOf(
-                        this.searchQuery.toUpperCase()
+                        this.searchQuery.toUpperCase(),
                     ) !== -1;
                 });
             }
@@ -248,7 +248,7 @@ export default {
 
             return this.$emit('input', selectedOptionValues.length
                 ? selectedOptionValues[0]
-                : null
+                : null,
             );
         },
     },

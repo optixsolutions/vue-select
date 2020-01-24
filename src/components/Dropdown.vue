@@ -130,7 +130,7 @@ export default {
                 // Enter
                 if (e.keyCode === 13) {
                     this.toggleSelectedOption(
-                        this.options[this.focusedOptionIndex]
+                        this.options[this.focusedOptionIndex],
                     );
 
                     e.preventDefault();
@@ -139,7 +139,7 @@ export default {
                 // Arrow up
                 if (e.keyCode === 38) {
                     const previousIndex = this.getPreviousFocusableIndex(
-                        this.focusedOptionIndex
+                        this.focusedOptionIndex,
                     );
 
                     this.setFocusedOption(this.options[previousIndex]);
@@ -149,7 +149,7 @@ export default {
                 // Arrow down
                 if (e.keyCode === 40) {
                     const nextIndex = this.getNextFocusableIndex(
-                        this.focusedOptionIndex
+                        this.focusedOptionIndex,
                     );
 
                     this.setFocusedOption(this.options[nextIndex]);
