@@ -45,7 +45,7 @@ export default {
         },
 
         optionIdentifier: {
-            type: [ String, Number],
+            type: [ String, Number ],
             required: true,
         },
 
@@ -109,7 +109,6 @@ export default {
 
     created() {
         document.addEventListener('keydown', this.keydownListener);
-
     },
 
     mounted() {
@@ -133,6 +132,8 @@ export default {
                     this.toggleSelectedOption(
                         this.options[this.focusedOptionIndex]
                     );
+
+                    e.preventDefault();
                 }
 
                 // Arrow up

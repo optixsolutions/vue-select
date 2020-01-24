@@ -5,6 +5,7 @@ import vue from 'rollup-plugin-vue';
 import babel from 'rollup-plugin-babel';
 import autoprefixer from 'autoprefixer';
 import postcss from 'rollup-plugin-postcss';
+import commonjs from 'rollup-plugin-commonjs';
 import { eslint } from 'rollup-plugin-eslint';
 import { terser } from 'rollup-plugin-terser';
 
@@ -21,6 +22,7 @@ const plugins = [
     babel({
         extensions: ['.js', '.vue'],
     }),
+    commonjs(),
 ];
 
 export default [

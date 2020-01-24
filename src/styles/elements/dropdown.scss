@@ -13,13 +13,13 @@
 }
 
 .vs-dropdown {
-    z-index: 1;
     width: 100%;
     margin-top: 8px;
     position: absolute;
     border-radius: 4px;
     margin-bottom: 8px;
     box-sizing: content-box;
+    z-index: $vue-dropdown-z-index;
     box-shadow: $vue-dropdown-box-shadow;
     background-color: $vue-dropdown-background-color;
 }

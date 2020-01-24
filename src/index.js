@@ -1,7 +1,8 @@
 import VueSelect from './components/Select.vue';
-import './styles/index.scss';
 
-export default function install(Vue) {
+export default function install(Vue, options = {}) {
+    const componentName = options.componentName || 'vue-select';
+
     // Register components
-    Vue.component('vue-select', VueSelect);
+    Vue.component(componentName, VueSelect);
 }

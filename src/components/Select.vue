@@ -97,7 +97,7 @@
 </template>
 
 <script>
-import SelectDropdown from './Dropdown';
+import SelectDropdown from './Dropdown.vue';
 
 export default {
     components: { SelectDropdown },
