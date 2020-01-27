@@ -86,12 +86,15 @@
           });
         },
         hasOptions: function hasOptions() {
-          return !!this.options.length;
+          return this.options.length !== 0;
+        },
+        focusableOptions: function focusableOptions() {
+          return this.options.filter(function (option) {
+            return !option.disabled;
+          });
         },
         hasFocusableOptions: function hasFocusableOptions() {
-          return !!this.options.filter(function (option) {
-            return !option.disabled;
-          }).length;
+          return this.focusableOptions.length !== 0;
         },
         focusedOptionIndex: function focusedOptionIndex() {
           var _this2 = this;
@@ -114,6 +117,10 @@
       mounted: function mounted() {
         this.$refs.scrollContent.addEventListener('scroll', this.scrollListener);
         this.scrollableHeight = this.$refs.scrollContent.scrollHeight - this.$refs.scrollContent.clientHeight;
+
+        if (this.hasFocusableOptions) {
+          this.setFocusedOption(this.focusableOptions[0]);
+        }
       },
       beforeDestroy: function beforeDestroy() {
         document.removeEventListener('keydown', this.keydownListener);
@@ -124,8 +131,13 @@
           if (this.hasFocusableOptions) {
             // Enter
             if (e.keyCode === 13) {
-              this.toggleSelectedOption(this.options[this.focusedOptionIndex]);
               e.preventDefault();
+
+              if (this.focusableOptions.length === 1) {
+                return this.toggleSelectedOption(this.focusableOptions[0]);
+              }
+
+              return this.toggleSelectedOption(this.options[this.focusedOptionIndex]);
             } // Arrow up
 
 
@@ -444,10 +456,10 @@
       },
       computed: {
         hasValue: function hasValue() {
-          return !!this.selectedOptions.length;
+          return this.selectedOptions.length !== 0;
         },
         hasSearchQuery: function hasSearchQuery() {
-          return !!this.searchQuery.length;
+          return this.searchQuery.length !== 0;
         },
         selectedOptionValues: function selectedOptionValues() {
           var _this = this;
@@ -497,14 +509,18 @@
             return this.$emit('input', _selectedOptionValues);
           }
 
-          return this.$emit('input', _selectedOptionValues.length ? _selectedOptionValues[0] : null);
+          if (_selectedOptionValues.length !== 0) {
+            return this.$emit('input', _selectedOptionValues[0]);
+          }
+
+          this.$emit('input', null);
         }
       },
       created: function created() {
         var _this3 = this;
 
         ['click', 'touchstart'].forEach(function (action) {
-          document.addEventListener(action, _this3.hideDropdown);
+          document.addEventListener(action, _this3.deactivateSelectOnClick);
         });
         document.addEventListener('keydown', this.keydownListener);
       },
@@ -512,7 +528,7 @@
         var _this4 = this;
 
         ['click', 'touchstart'].forEach(function (action) {
-          document.removeEventListener(action, _this4.hideDropdown);
+          document.removeEventListener(action, _this4.deactivateSelectOnClick);
         });
         document.removeEventListener('keydown', this.keydownListener);
       },
@@ -547,8 +563,15 @@
 
           return this.selectClass = "vs-open-".concat(this.openDirection);
         },
+        activateSelect: function activateSelect() {
+          this.focusInput();
+          this.showDropdown();
+        },
+        focusInput: function focusInput() {
+          this.$refs.input.focus();
+          this.inputIsActive = true;
+        },
         blurInput: function blurInput() {
-          this.searchQuery = '';
           this.inputIsActive = false;
         },
         showDropdown: function showDropdown() {
@@ -558,17 +581,18 @@
             this.dropdownIsVisible = true;
             this.$nextTick(function () {
               _this5.setDropdownPosition();
-
-              _this5.$refs.input.focus();
             });
           }
         },
-        hideDropdown: function hideDropdown(event) {
+        deactivateSelectOnClick: function deactivateSelectOnClick(event) {
           if (this.dropdownIsVisible && this.$refs.select !== event.target && !this.$refs.select.contains(event.target)) {
+            this.searchQuery = '';
+            this.inputIsActive = false;
             this.dropdownIsVisible = false;
           }
         },
         selectOption: function selectOption(option) {
+          this.focusInput();
           this.searchQuery = '';
           this.dropdownIsVisible = false;
           this.$emit('select', option);
@@ -609,7 +633,7 @@
         staticClass: "vs-select",
         class: _vm.selectClass,
         on: {
-          click: _vm.showDropdown
+          click: _vm.activateSelect
         }
       }, [_c("div", {
         staticClass: "vs-select-control"
@@ -657,9 +681,7 @@
         },
         on: {
           blur: _vm.blurInput,
-          focus: function focus($event) {
-            _vm.inputIsActive = true;
-          },
+          focus: _vm.activateSelect,
           input: function input($event) {
             if ($event.target.composing) {
               return;
