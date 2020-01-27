@@ -47,6 +47,7 @@
 .vs-select-placeholder {
     top: 50%;
     margin-left: 2px;
+    user-select: none;
     margin-right: 2px;
     position: absolute;
     transform: translateY(-50%);

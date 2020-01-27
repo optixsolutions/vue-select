@@ -83,13 +83,17 @@ export default {
         },
 
         hasOptions() {
-            return !! this.options.length;
+            return this.options.length !== 0;
+        },
+
+        focusableOptions() {
+            return this.options.filter(option => {
+                return ! option.disabled;
+            });
         },
 
         hasFocusableOptions() {
-            return !! this.options.filter(option => {
-                return ! option.disabled;
-            }).length;
+            return this.focusableOptions.length !== 0;
         },
 
         focusedOptionIndex() {
@@ -117,6 +121,10 @@ export default {
         this.scrollableHeight = (
             this.$refs.scrollContent.scrollHeight - this.$refs.scrollContent.clientHeight
         );
+
+        if (this.hasFocusableOptions) {
+            this.setFocusedOption(this.focusableOptions[0]);
+        }
     },
 
     beforeDestroy() {
@@ -129,11 +137,17 @@ export default {
             if (this.hasFocusableOptions) {
                 // Enter
                 if (e.keyCode === 13) {
-                    this.toggleSelectedOption(
+                    e.preventDefault();
+
+                    if (this.focusableOptions.length === 1) {
+                        return this.toggleSelectedOption(
+                            this.focusableOptions[0],
+                        );
+                    }
+
+                    return this.toggleSelectedOption(
                         this.options[this.focusedOptionIndex],
                     );
-
-                    e.preventDefault();
                 }
 
                 // Arrow up

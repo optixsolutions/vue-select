@@ -4,7 +4,7 @@
             ref="select"
             class="vs-select"
             :class="selectClass"
-            @click="showDropdown"
+            @click="activateSelect"
         >
             <div class="vs-select-control">
                 <div class="vs-select-container">
@@ -47,7 +47,7 @@
                             v-model="searchQuery"
                             size="2"
                             @blur="blurInput"
-                            @focus="inputIsActive = true"
+                            @focus="activateSelect"
                         >
                     </div>
                 </div>
@@ -187,11 +187,11 @@ export default {
 
     computed: {
         hasValue() {
-            return !! this.selectedOptions.length;
+            return this.selectedOptions.length !== 0;
         },
 
         hasSearchQuery() {
-            return !! this.searchQuery.length;
+            return this.searchQuery.length !== 0;
         },
 
         selectedOptionValues() {
@@ -246,16 +246,17 @@ export default {
                 return this.$emit('input', selectedOptionValues);
             }
 
-            return this.$emit('input', selectedOptionValues.length
-                ? selectedOptionValues[0]
-                : null,
-            );
+            if (selectedOptionValues.length !== 0) {
+                return this.$emit('input', selectedOptionValues[0]);
+            }
+
+            this.$emit('input', null);
         },
     },
 
     created() {
         ['click', 'touchstart'].forEach(action => {
-            document.addEventListener(action, this.hideDropdown);
+            document.addEventListener(action, this.deactivateSelectOnClick);
         });
 
         document.addEventListener('keydown', this.keydownListener);
@@ -263,7 +264,7 @@ export default {
 
     destroyed() {
         ['click', 'touchstart'].forEach(action => {
-            document.removeEventListener(action, this.hideDropdown);
+            document.removeEventListener(action, this.deactivateSelectOnClick);
         });
 
         document.removeEventListener('keydown', this.keydownListener);
@@ -302,8 +303,17 @@ export default {
             return this.selectClass = `vs-open-${this.openDirection}`;
         },
 
+        activateSelect() {
+            this.focusInput();
+            this.showDropdown();
+        },
+
+        focusInput() {
+            this.$refs.input.focus();
+            this.inputIsActive = true;
+        },
+
         blurInput() {
-            this.searchQuery = '';
             this.inputIsActive = false;
         },
 
@@ -313,24 +323,27 @@ export default {
 
                 this.$nextTick(() => {
                     this.setDropdownPosition();
-                    this.$refs.input.focus();
                 });
             }
         },
 
-        hideDropdown(event) {
+        deactivateSelectOnClick(event) {
             if (
                 this.dropdownIsVisible
                 && (this.$refs.select !== event.target)
                 && ! this.$refs.select.contains(event.target)
             ) {
+                this.searchQuery = '';
+                this.inputIsActive = false;
                 this.dropdownIsVisible = false;
             }
         },
 
         selectOption(option) {
+            this.focusInput();
             this.searchQuery = '';
             this.dropdownIsVisible = false;
+
             this.$emit('select', option);
 
             if (this.multiple) {
