@@ -1,6 +1,6 @@
 {
     "name": "@optix/vue-select",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "main": "dist/vue-select.js",
     "module": "dist/vue-select.esm.js",
     "browser": {
