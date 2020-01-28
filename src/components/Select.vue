@@ -3,7 +3,7 @@
         <div
             ref="select"
             class="vs-select"
-            :class="selectClass"
+            :class="selectClasses"
             @click="activateSelect"
         >
             <div class="vs-select-control">
@@ -46,6 +46,10 @@
                             ref="input"
                             v-model="searchQuery"
                             size="2"
+                            type="text"
+                            :readonly="disabled"
+                            :tabindex="disabled ? -1 : 0"
+                            autocomplete="off"
                             @blur="blurInput"
                             @focus="activateSelect"
                         >
@@ -158,6 +162,11 @@ export default {
             default: 'Please select...',
         },
 
+        disabled: {
+            type: Boolean,
+            default: false,
+        },
+
         openDirection: {
             type: String,
             default: 'auto',
@@ -178,14 +187,21 @@ export default {
         return {
             searchQuery: '',
             inputIsActive: false,
-            selectClass: null,
-
             dropdownIsVisible: false,
+            dropdownOpenDirection: 'down',
             selectedOptions: [],
         };
     },
 
     computed: {
+        selectClasses() {
+            return {
+                disabled: this.disabled,
+                'vs-open-up': this.dropdownOpenDirection === 'up',
+                'vs-open-down': this.dropdownOpenDirection === 'down',
+            };
+        },
+
         hasValue() {
             return this.selectedOptions.length !== 0;
         },
@@ -232,25 +248,41 @@ export default {
     },
 
     watch: {
-        searchQuery(searchQuery) {
-            if (this.hasSearchQuery) {
-                this.showDropdown();
-            }
+        options: {
+            handler(options) {
+                const values = Array.isArray(this.value) ? this.value : [ this.value ];
 
-            this.$refs.input.setAttribute('size', searchQuery.length + 2);
-            this.$emit('search-change', searchQuery);
+                this.selectedOptions = options.filter(selectedOption => {
+                    return values.includes(selectedOption[this.optionIdentifier]);
+                });
+            },
+            deep: true,
+            immediate: true,
+        },
+
+        searchQuery(searchQuery) {
+            if (! this.disabled) {
+                if (this.hasSearchQuery) {
+                    this.showDropdown();
+                }
+
+                this.$refs.input.setAttribute('size', searchQuery.length + 2);
+                this.$emit('search-change', searchQuery);
+            }
         },
 
         selectedOptionValues(selectedOptionValues) {
-            if (this.multiple) {
-                return this.$emit('input', selectedOptionValues);
-            }
+            if (! this.disabled) {
+                if (this.multiple) {
+                    return this.$emit('input', selectedOptionValues);
+                }
 
-            if (selectedOptionValues.length !== 0) {
-                return this.$emit('input', selectedOptionValues[0]);
-            }
+                if (selectedOptionValues.length !== 0) {
+                    return this.$emit('input', selectedOptionValues[0]);
+                }
 
-            this.$emit('input', null);
+                this.$emit('input', null);
+            }
         },
     },
 
@@ -272,19 +304,21 @@ export default {
 
     methods: {
         keydownListener(e) {
-            // Arrow down
-            if (e.keyCode === 40 && this.inputIsActive && ! this.dropdownIsVisible) {
-                this.dropdownIsVisible = true;
-            }
+            if (! this.disabled) {
+                // Arrow down
+                if (e.keyCode === 40 && this.inputIsActive && ! this.dropdownIsVisible) {
+                    this.dropdownIsVisible = true;
+                }
 
-            // Delete
-            if (e.keyCode === 8 && this.inputIsActive && this.hasValue && ! this.multiple) {
-                this.selectedOptions = [];
-            }
+                // Delete
+                if (e.keyCode === 8 && this.inputIsActive && this.hasValue && ! this.multiple) {
+                    this.selectedOptions = [];
+                }
 
-            // Escape
-            if (e.keyCode === 27 && this.dropdownIsVisible) {
-                this.dropdownIsVisible = false;
+                // Tab, Escape
+                if ((e.keyCode === 9 || e.keyCode === 27) && this.dropdownIsVisible) {
+                    this.dropdownIsVisible = false;
+                }
             }
         },
 
@@ -294,18 +328,20 @@ export default {
                 const dropdownRect = this.$refs.dropdown.$el.getBoundingClientRect();
 
                 if ((selectRect.y + selectRect.height + dropdownRect.height) > window.innerHeight) {
-                    return this.selectClass = 'vs-open-up';
+                    return this.dropdownOpenDirection = 'up';
                 }
 
-                return this.selectClass = 'vs-open-down';
+                return this.dropdownOpenDirection = 'down';
             }
 
-            return this.selectClass = `vs-open-${this.openDirection}`;
+            return this.dropdownOpenDirection = this.openDirection;
         },
 
         activateSelect() {
-            this.focusInput();
-            this.showDropdown();
+            if (! this.disabled) {
+                this.focusInput();
+                this.showDropdown();
+            }
         },
 
         focusInput() {
@@ -318,7 +354,7 @@ export default {
         },
 
         showDropdown() {
-            if (! this.dropdownIsVisible) {
+            if (! this.disabled && ! this.dropdownIsVisible) {
                 this.dropdownIsVisible = true;
 
                 this.$nextTick(() => {
@@ -340,26 +376,30 @@ export default {
         },
 
         selectOption(option) {
-            this.focusInput();
-            this.searchQuery = '';
-            this.dropdownIsVisible = false;
+            if (! this.disabled) {
+                this.focusInput();
+                this.searchQuery = '';
+                this.dropdownIsVisible = false;
 
-            this.$emit('select', option);
+                this.$emit('select', option);
 
-            if (this.multiple) {
-                return this.selectedOptions.push(option);
+                if (this.multiple) {
+                    return this.selectedOptions.push(option);
+                }
+
+                this.selectedOptions = [ option ];
             }
-
-            this.selectedOptions = [ option ];
         },
 
         deselectOption(option) {
-            this.dropdownIsVisible = false;
-            this.$emit('deselect', option);
+            if (! this.disabled) {
+                this.dropdownIsVisible = false;
+                this.$emit('deselect', option);
 
-            this.selectedOptions = this.selectedOptions.filter(selectedOption => {
-                return selectedOption[this.optionIdentifier] !== option[this.optionIdentifier];
-            });
+                this.selectedOptions = this.selectedOptions.filter(selectedOption => {
+                    return selectedOption[this.optionIdentifier] !== option[this.optionIdentifier];
+                });
+            }
         },
     },
 };

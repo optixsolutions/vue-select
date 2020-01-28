@@ -427,6 +427,10 @@ var script$1 = {
       type: String,
       default: 'Please select...'
     },
+    disabled: {
+      type: Boolean,
+      default: false
+    },
     openDirection: {
       type: String,
       default: 'auto',
@@ -443,12 +447,19 @@ var script$1 = {
     return {
       searchQuery: '',
       inputIsActive: false,
-      selectClass: null,
       dropdownIsVisible: false,
+      dropdownOpenDirection: 'down',
       selectedOptions: []
     };
   },
   computed: {
+    selectClasses: function selectClasses() {
+      return {
+        disabled: this.disabled,
+        'vs-open-up': this.dropdownOpenDirection === 'up',
+        'vs-open-down': this.dropdownOpenDirection === 'down'
+      };
+    },
     hasValue: function hasValue() {
       return this.selectedOptions.length !== 0;
     },
@@ -490,57 +501,75 @@ var script$1 = {
     }
   },
   watch: {
-    searchQuery: function searchQuery(_searchQuery) {
-      if (this.hasSearchQuery) {
-        this.showDropdown();
-      }
+    options: {
+      handler: function handler(options) {
+        var _this3 = this;
 
-      this.$refs.input.setAttribute('size', _searchQuery.length + 2);
-      this.$emit('search-change', _searchQuery);
+        var values = Array.isArray(this.value) ? this.value : [this.value];
+        this.selectedOptions = options.filter(function (selectedOption) {
+          return values.includes(selectedOption[_this3.optionIdentifier]);
+        });
+      },
+      deep: true,
+      immediate: true
+    },
+    searchQuery: function searchQuery(_searchQuery) {
+      if (!this.disabled) {
+        if (this.hasSearchQuery) {
+          this.showDropdown();
+        }
+
+        this.$refs.input.setAttribute('size', _searchQuery.length + 2);
+        this.$emit('search-change', _searchQuery);
+      }
     },
     selectedOptionValues: function selectedOptionValues(_selectedOptionValues) {
-      if (this.multiple) {
-        return this.$emit('input', _selectedOptionValues);
-      }
+      if (!this.disabled) {
+        if (this.multiple) {
+          return this.$emit('input', _selectedOptionValues);
+        }
 
-      if (_selectedOptionValues.length !== 0) {
-        return this.$emit('input', _selectedOptionValues[0]);
-      }
+        if (_selectedOptionValues.length !== 0) {
+          return this.$emit('input', _selectedOptionValues[0]);
+        }
 
-      this.$emit('input', null);
+        this.$emit('input', null);
+      }
     }
   },
   created: function created() {
-    var _this3 = this;
+    var _this4 = this;
 
     ['click', 'touchstart'].forEach(function (action) {
-      document.addEventListener(action, _this3.deactivateSelectOnClick);
+      document.addEventListener(action, _this4.deactivateSelectOnClick);
     });
     document.addEventListener('keydown', this.keydownListener);
   },
   destroyed: function destroyed() {
-    var _this4 = this;
+    var _this5 = this;
 
     ['click', 'touchstart'].forEach(function (action) {
-      document.removeEventListener(action, _this4.deactivateSelectOnClick);
+      document.removeEventListener(action, _this5.deactivateSelectOnClick);
     });
     document.removeEventListener('keydown', this.keydownListener);
   },
   methods: {
     keydownListener: function keydownListener(e) {
-      // Arrow down
-      if (e.keyCode === 40 && this.inputIsActive && !this.dropdownIsVisible) {
-        this.dropdownIsVisible = true;
-      } // Delete
+      if (!this.disabled) {
+        // Arrow down
+        if (e.keyCode === 40 && this.inputIsActive && !this.dropdownIsVisible) {
+          this.dropdownIsVisible = true;
+        } // Delete
 
 
-      if (e.keyCode === 8 && this.inputIsActive && this.hasValue && !this.multiple) {
-        this.selectedOptions = [];
-      } // Escape
+        if (e.keyCode === 8 && this.inputIsActive && this.hasValue && !this.multiple) {
+          this.selectedOptions = [];
+        } // Tab, Escape
 
 
-      if (e.keyCode === 27 && this.dropdownIsVisible) {
-        this.dropdownIsVisible = false;
+        if ((e.keyCode === 9 || e.keyCode === 27) && this.dropdownIsVisible) {
+          this.dropdownIsVisible = false;
+        }
       }
     },
     setDropdownPosition: function setDropdownPosition() {
@@ -549,17 +578,19 @@ var script$1 = {
         var dropdownRect = this.$refs.dropdown.$el.getBoundingClientRect();
 
         if (selectRect.y + selectRect.height + dropdownRect.height > window.innerHeight) {
-          return this.selectClass = 'vs-open-up';
+          return this.dropdownOpenDirection = 'up';
         }
 
-        return this.selectClass = 'vs-open-down';
+        return this.dropdownOpenDirection = 'down';
       }
 
-      return this.selectClass = "vs-open-".concat(this.openDirection);
+      return this.dropdownOpenDirection = this.openDirection;
     },
     activateSelect: function activateSelect() {
-      this.focusInput();
-      this.showDropdown();
+      if (!this.disabled) {
+        this.focusInput();
+        this.showDropdown();
+      }
     },
     focusInput: function focusInput() {
       this.$refs.input.focus();
@@ -569,12 +600,12 @@ var script$1 = {
       this.inputIsActive = false;
     },
     showDropdown: function showDropdown() {
-      var _this5 = this;
+      var _this6 = this;
 
-      if (!this.dropdownIsVisible) {
+      if (!this.disabled && !this.dropdownIsVisible) {
         this.dropdownIsVisible = true;
         this.$nextTick(function () {
-          _this5.setDropdownPosition();
+          _this6.setDropdownPosition();
         });
       }
     },
@@ -586,25 +617,29 @@ var script$1 = {
       }
     },
     selectOption: function selectOption(option) {
-      this.focusInput();
-      this.searchQuery = '';
-      this.dropdownIsVisible = false;
-      this.$emit('select', option);
+      if (!this.disabled) {
+        this.focusInput();
+        this.searchQuery = '';
+        this.dropdownIsVisible = false;
+        this.$emit('select', option);
 
-      if (this.multiple) {
-        return this.selectedOptions.push(option);
+        if (this.multiple) {
+          return this.selectedOptions.push(option);
+        }
+
+        this.selectedOptions = [option];
       }
-
-      this.selectedOptions = [option];
     },
     deselectOption: function deselectOption(option) {
-      var _this6 = this;
+      var _this7 = this;
 
-      this.dropdownIsVisible = false;
-      this.$emit('deselect', option);
-      this.selectedOptions = this.selectedOptions.filter(function (selectedOption) {
-        return selectedOption[_this6.optionIdentifier] !== option[_this6.optionIdentifier];
-      });
+      if (!this.disabled) {
+        this.dropdownIsVisible = false;
+        this.$emit('deselect', option);
+        this.selectedOptions = this.selectedOptions.filter(function (selectedOption) {
+          return selectedOption[_this7.optionIdentifier] !== option[_this7.optionIdentifier];
+        });
+      }
     }
   }
 };
@@ -625,7 +660,7 @@ var __vue_render__$1 = function __vue_render__() {
   }, [_c("div", {
     ref: "select",
     staticClass: "vs-select",
-    class: _vm.selectClass,
+    class: _vm.selectClasses,
     on: {
       click: _vm.activateSelect
     }
@@ -668,7 +703,11 @@ var __vue_render__$1 = function __vue_render__() {
     ref: "input",
     attrs: {
       id: _vm.id,
-      size: "2"
+      size: "2",
+      type: "text",
+      readonly: _vm.disabled,
+      tabindex: _vm.disabled ? -1 : 0,
+      autocomplete: "off"
     },
     domProps: {
       value: _vm.searchQuery

@@ -1,5 +1,55 @@
 .vs-select {
     position: relative;
+
+    &:not(.disabled) {
+        .vs-select-control {
+            &:hover {
+                border-color: $vs-select-border-hover-color;
+                background-color: $vs-select-background-hover-color;
+
+                .vs-select-arrow {
+                    &:before {
+                        border-top-color: $vs-select-arrow-hover-color;
+                    }
+                }
+
+                .vs-select-placeholder {
+                    color: $vs-select-placeholder-hover-color;
+                }
+
+                .vs-select-single {
+                    color: $vs-select-single-value-hover-color;
+                }
+            }
+        }
+    }
+
+    &.disabled {
+        pointer-events: none;
+
+        .vs-select-control {
+            border-color: $vs-select-border-disabled-color;
+            background-color: $vs-select-background-disabled-color;
+
+            .vs-select-arrow {
+                &:before {
+                    border-top-color: $vs-select-arrow-disabled-color;
+                }
+            }
+        }
+
+        .vs-select-placeholder {
+            color: $vs-select-placeholder-disabled-color;
+        }
+
+        .vs-select-input {
+            color: $vs-select-input-disabled-color;
+        }
+
+        .vs-select-single {
+            color: $vs-select-single-value-disabled-color;
+        }
+    }
 }
 
 .vs-select-control {
@@ -13,25 +63,6 @@
     border-radius: $vs-select-border-radius;
     border: 1px solid $vs-select-border-color;
     background-color: $vs-select-background-color;
-
-    &:hover {
-        border-color: $vs-select-border-hover-color;
-        background-color: $vs-select-background-hover-color;
-
-        .vs-select-arrow {
-            &:before {
-                border-top-color: $vs-select-arrow-hover-color;
-            }
-        }
-
-        .vs-select-placeholder {
-            color: $vs-select-placeholder-hover-color;
-        }
-
-        .vs-select-single {
-            color: $vs-select-single-value-hover-color;
-        }
-    }
 }
 
 .vs-select-container {
