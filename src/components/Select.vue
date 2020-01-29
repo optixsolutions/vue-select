@@ -47,7 +47,7 @@
                             v-model="searchQuery"
                             size="2"
                             type="text"
-                            :readonly="disabled"
+                            :readonly="disabled || ! searchable"
                             :tabindex="disabled ? -1 : 0"
                             autocomplete="off"
                             @blur="blurInput"
@@ -71,7 +71,7 @@
             <select-dropdown
                 v-if="dropdownIsVisible"
                 ref="dropdown"
-                :options="filteredOptions"
+                :options="options"
                 :loading-more="loadingMore"
                 :selected-options="selectedOptions"
                 :option-identifier="optionIdentifier"
@@ -101,6 +101,9 @@
 </template>
 
 <script>
+// Throttle scroll
+// Throttle searchQuery emit
+
 import SelectDropdown from './Dropdown.vue';
 
 export default {
@@ -150,11 +153,6 @@ export default {
         searchable: {
             type: Boolean,
             default: true,
-        },
-
-        hideSelected: {
-            type: Boolean,
-            default: false,
         },
 
         placeholder: {
@@ -223,28 +221,6 @@ export default {
 
             return this.selectedOptions[0];
         },
-
-        filteredOptions() {
-            let options = this.options;
-
-            if (this.hideSelected) {
-                options = options.filter(option => {
-                    return ! this.selectedOptionValues.includes(
-                        option[this.optionIdentifier],
-                    );
-                });
-            }
-
-            if (this.searchable) {
-                options = options.filter(option => {
-                    return option[this.optionLabel].toUpperCase().indexOf(
-                        this.searchQuery.toUpperCase(),
-                    ) !== -1;
-                });
-            }
-
-            return options;
-        },
     },
 
     watch: {
@@ -267,7 +243,7 @@ export default {
                 }
 
                 this.$refs.input.setAttribute('size', searchQuery.length + 2);
-                this.$emit('search-change', searchQuery);
+                this.$emit('query-change', searchQuery);
             }
         },
 

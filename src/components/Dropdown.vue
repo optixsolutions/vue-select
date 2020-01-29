@@ -111,6 +111,15 @@ export default {
         },
     },
 
+    watch: {
+        options: {
+            handler() {
+                this.setScrollableHeight();
+            },
+            deep: true,
+        },
+    },
+
     created() {
         document.addEventListener('keydown', this.keydownListener);
     },
@@ -118,9 +127,7 @@ export default {
     mounted() {
         this.$refs.scrollContent.addEventListener('scroll', this.scrollListener);
 
-        this.scrollableHeight = (
-            this.$refs.scrollContent.scrollHeight - this.$refs.scrollContent.clientHeight
-        );
+        this.setScrollableHeight();
 
         if (this.hasFocusableOptions) {
             this.setFocusedOption(this.focusableOptions[0]);
@@ -170,6 +177,12 @@ export default {
                     this.scrollToOption(nextIndex);
                 }
             }
+        },
+
+        setScrollableHeight() {
+            this.scrollableHeight = (
+                this.$refs.scrollContent.scrollHeight - this.$refs.scrollContent.clientHeight
+            );
         },
 
         scrollListener() {
