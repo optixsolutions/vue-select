@@ -250,6 +250,10 @@ export default {
                     this.showDropdown();
                 }
 
+                if (this.dropdownIsVisible) {
+                    this.$refs.dropdown.scrollToTop();
+                }
+
                 this.$refs.input.setAttribute('size', searchQuery.length + 2);
                 this.$emit('query-change', searchQuery);
             }

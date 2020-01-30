@@ -271,6 +271,10 @@ export default {
             }
         },
 
+        scrollToTop() {
+            this.$refs.scrollContent.scrollTo(0, 0);
+        },
+
         scrollToOption(index) {
             this.$refs[`option-${index}`][0].scrollIntoView({
                 behavior: 'smooth',
