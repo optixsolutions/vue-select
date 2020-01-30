@@ -114,6 +114,7 @@ export default {
     watch: {
         options: {
             handler() {
+                this.lastScroll = 0;
                 this.setScrollableHeight();
             },
             deep: true,

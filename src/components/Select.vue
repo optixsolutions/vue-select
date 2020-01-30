@@ -204,6 +204,10 @@ export default {
             return this.selectedOptions.length !== 0;
         },
 
+        hasOptions() {
+            return this.options.length !== 0;
+        },
+
         hasSearchQuery() {
             return this.searchQuery.length !== 0;
         },
@@ -224,16 +228,20 @@ export default {
     },
 
     watch: {
-        options: {
-            handler(options) {
-                const values = Array.isArray(this.value) ? this.value : [ this.value ];
+        value: {
+            handler(value) {
+                if (this.hasOptions) {
+                    this.setSelectedOptions(value, 'value');
+                }
+            },
+            immediate: true,
+        },
 
-                this.selectedOptions = options.filter(selectedOption => {
-                    return values.includes(selectedOption[this.optionIdentifier]);
-                });
+        options: {
+            handler() {
+                this.setSelectedOptions(this.value, 'options');
             },
             deep: true,
-            immediate: true,
         },
 
         searchQuery(searchQuery) {
@@ -298,6 +306,18 @@ export default {
             }
         },
 
+        setSelectedOptions(value, type) {
+            if (! value) {
+                return this.selectedOptions = [];
+            }
+
+            const values = Array.isArray(value) ? value : [ value ];
+
+            this.selectedOptions = this.options.filter(selectedOption => {
+                return values.includes(selectedOption[this.optionIdentifier]);
+            });
+        },
+
         setDropdownPosition() {
             if (this.openDirection === 'auto') {
                 const selectRect = this.$refs.select.getBoundingClientRect();
@@ -357,6 +377,7 @@ export default {
                 this.searchQuery = '';
                 this.dropdownIsVisible = false;
 
+                this.$emit('change');
                 this.$emit('select', option);
 
                 if (this.multiple) {
@@ -370,6 +391,8 @@ export default {
         deselectOption(option) {
             if (! this.disabled) {
                 this.dropdownIsVisible = false;
+
+                this.$emit('change');
                 this.$emit('deselect', option);
 
                 this.selectedOptions = this.selectedOptions.filter(selectedOption => {
