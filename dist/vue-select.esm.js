@@ -105,12 +105,21 @@ var script = {
       return this.options.length - 1;
     }
   },
+  watch: {
+    options: {
+      handler: function handler() {
+        this.lastScroll = 0;
+        this.setScrollableHeight();
+      },
+      deep: true
+    }
+  },
   created: function created() {
     document.addEventListener('keydown', this.keydownListener);
   },
   mounted: function mounted() {
     this.$refs.scrollContent.addEventListener('scroll', this.scrollListener);
-    this.scrollableHeight = this.$refs.scrollContent.scrollHeight - this.$refs.scrollContent.clientHeight;
+    this.setScrollableHeight();
 
     if (this.hasFocusableOptions) {
       this.setFocusedOption(this.focusableOptions[0]);
@@ -148,6 +157,9 @@ var script = {
           this.scrollToOption(nextIndex);
         }
       }
+    },
+    setScrollableHeight: function setScrollableHeight() {
+      this.scrollableHeight = this.$refs.scrollContent.scrollHeight - this.$refs.scrollContent.clientHeight;
     },
     scrollListener: function scrollListener() {
       var currentScroll = this.$refs.scrollContent.scrollTop;
@@ -218,6 +230,9 @@ var script = {
 
         this.$emit('select-option', option);
       }
+    },
+    scrollToTop: function scrollToTop() {
+      this.$refs.scrollContent.scrollTo(0, 0);
     },
     scrollToOption: function scrollToOption(index) {
       this.$refs["option-".concat(index)][0].scrollIntoView({
@@ -419,10 +434,6 @@ var script$1 = {
       type: Boolean,
       default: true
     },
-    hideSelected: {
-      type: Boolean,
-      default: false
-    },
     placeholder: {
       type: String,
       default: 'Please select...'
@@ -463,6 +474,9 @@ var script$1 = {
     hasValue: function hasValue() {
       return this.selectedOptions.length !== 0;
     },
+    hasOptions: function hasOptions() {
+      return this.options.length !== 0;
+    },
     hasSearchQuery: function hasSearchQuery() {
       return this.searchQuery.length !== 0;
     },
@@ -479,39 +493,22 @@ var script$1 = {
       }
 
       return this.selectedOptions[0];
-    },
-    filteredOptions: function filteredOptions() {
-      var _this2 = this;
-
-      var options = this.options;
-
-      if (this.hideSelected) {
-        options = options.filter(function (option) {
-          return !_this2.selectedOptionValues.includes(option[_this2.optionIdentifier]);
-        });
-      }
-
-      if (this.searchable) {
-        options = options.filter(function (option) {
-          return option[_this2.optionLabel].toUpperCase().indexOf(_this2.searchQuery.toUpperCase()) !== -1;
-        });
-      }
-
-      return options;
     }
   },
   watch: {
-    options: {
-      handler: function handler(options) {
-        var _this3 = this;
-
-        var values = Array.isArray(this.value) ? this.value : [this.value];
-        this.selectedOptions = options.filter(function (selectedOption) {
-          return values.includes(selectedOption[_this3.optionIdentifier]);
-        });
+    value: {
+      handler: function handler(value) {
+        if (this.hasOptions) {
+          this.setSelectedOptions(value, 'value');
+        }
       },
-      deep: true,
       immediate: true
+    },
+    options: {
+      handler: function handler() {
+        this.setSelectedOptions(this.value, 'options');
+      },
+      deep: true
     },
     searchQuery: function searchQuery(_searchQuery) {
       if (!this.disabled) {
@@ -519,8 +516,12 @@ var script$1 = {
           this.showDropdown();
         }
 
+        if (this.dropdownIsVisible) {
+          this.$refs.dropdown.scrollToTop();
+        }
+
         this.$refs.input.setAttribute('size', _searchQuery.length + 2);
-        this.$emit('search-change', _searchQuery);
+        this.$emit('query-change', _searchQuery);
       }
     },
     selectedOptionValues: function selectedOptionValues(_selectedOptionValues) {
@@ -538,18 +539,18 @@ var script$1 = {
     }
   },
   created: function created() {
-    var _this4 = this;
+    var _this2 = this;
 
     ['click', 'touchstart'].forEach(function (action) {
-      document.addEventListener(action, _this4.deactivateSelectOnClick);
+      document.addEventListener(action, _this2.deactivateSelectOnClick);
     });
     document.addEventListener('keydown', this.keydownListener);
   },
   destroyed: function destroyed() {
-    var _this5 = this;
+    var _this3 = this;
 
     ['click', 'touchstart'].forEach(function (action) {
-      document.removeEventListener(action, _this5.deactivateSelectOnClick);
+      document.removeEventListener(action, _this3.deactivateSelectOnClick);
     });
     document.removeEventListener('keydown', this.keydownListener);
   },
@@ -571,6 +572,18 @@ var script$1 = {
           this.dropdownIsVisible = false;
         }
       }
+    },
+    setSelectedOptions: function setSelectedOptions(value) {
+      var _this4 = this;
+
+      if (!value) {
+        return this.selectedOptions = [];
+      }
+
+      var values = Array.isArray(value) ? value : [value];
+      this.selectedOptions = this.options.filter(function (selectedOption) {
+        return values.includes(selectedOption[_this4.optionIdentifier]);
+      });
     },
     setDropdownPosition: function setDropdownPosition() {
       if (this.openDirection === 'auto') {
@@ -600,12 +613,12 @@ var script$1 = {
       this.inputIsActive = false;
     },
     showDropdown: function showDropdown() {
-      var _this6 = this;
+      var _this5 = this;
 
       if (!this.disabled && !this.dropdownIsVisible) {
         this.dropdownIsVisible = true;
         this.$nextTick(function () {
-          _this6.setDropdownPosition();
+          _this5.setDropdownPosition();
         });
       }
     },
@@ -621,6 +634,7 @@ var script$1 = {
         this.focusInput();
         this.searchQuery = '';
         this.dropdownIsVisible = false;
+        this.$emit('change');
         this.$emit('select', option);
 
         if (this.multiple) {
@@ -631,13 +645,14 @@ var script$1 = {
       }
     },
     deselectOption: function deselectOption(option) {
-      var _this7 = this;
+      var _this6 = this;
 
       if (!this.disabled) {
         this.dropdownIsVisible = false;
+        this.$emit('change');
         this.$emit('deselect', option);
         this.selectedOptions = this.selectedOptions.filter(function (selectedOption) {
-          return selectedOption[_this7.optionIdentifier] !== option[_this7.optionIdentifier];
+          return selectedOption[_this6.optionIdentifier] !== option[_this6.optionIdentifier];
         });
       }
     }
@@ -705,7 +720,7 @@ var __vue_render__$1 = function __vue_render__() {
       id: _vm.id,
       size: "2",
       type: "text",
-      readonly: _vm.disabled,
+      readonly: _vm.disabled || !_vm.searchable,
       tabindex: _vm.disabled ? -1 : 0,
       autocomplete: "off"
     },
@@ -736,7 +751,7 @@ var __vue_render__$1 = function __vue_render__() {
   })])]), _vm._v(" "), _vm.dropdownIsVisible ? _c("select-dropdown", {
     ref: "dropdown",
     attrs: {
-      options: _vm.filteredOptions,
+      options: _vm.options,
       "loading-more": _vm.loadingMore,
       "selected-options": _vm.selectedOptions,
       "option-identifier": _vm.optionIdentifier,

@@ -310,7 +310,7 @@ export default {
             }
         },
 
-        setSelectedOptions(value, type) {
+        setSelectedOptions(value) {
             if (! value) {
                 return this.selectedOptions = [];
             }
