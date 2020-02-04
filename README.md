@@ -73,11 +73,11 @@ todo
 
 ### Props
 
-| Name | Type | Default | Description |
-| :--- | :--- | :------ | :---------- |
-| v-model | `Array`, `Number`, `String` | `null` | Bind selected values between the Vue Select and your data |
+| Name | Type | Default Value | Description |
+| :--- | :--- | :------------ | :---------- |
+| value | `Array||Number||String` | `null` | Selects the given options |
 | options | `Array` | `[]` | An array of objects, value will default to `option.value` and label will default to `option.label` |
-| id | `String` | `null` | Used to identify the component in events |
+| id | `String` | `null` | Applied to the underlying input |
 | option-identifier | `String` | `'value'` | Name of the identifier used within the options `Object` |
 | option-label | `String` | `'label'` | Name of the label used within the  options `Object`, this will be visible in the dropdown |
 | loading | `Boolean` | `false` | Show / hide the loading indicator |
@@ -85,21 +85,21 @@ todo
 | multiple | `Boolean` | `false` | Allows multiple options to be selected |
 | disabled | `Boolean` | `false` | Enable / disable select |
 | searchable | `Boolean` | `true` | Show / hide search input |
-| open-direction | `String` | `'auto'` | Fix opening direction, options: `'down'`, `'up'` |
+| open-direction | `String` | `'auto'` | Fix opening direction, options:  `'auto'||'down'||'up'` |
 | placeholder | `String` | `'Please select...'` | Default placeholder text on select element |
-| load-more-threshold | `Number` | `60` | Distance in px from bottom of dropdown before `@load-more` is emitted. |
+| load-more-threshold | `Number` | `60` | Distance in px from bottom of dropdown before `@load-more` is fired. |
 | no-options-message | `String` | `'No options found.'` | Message shown when no options are provided |
 
 ### Events
 
-| Event | Attributes | Description |
+| Event | Payload | Description |
 | :---- | :--------- | :---------- |
-| `@input` | `(option|options)` | Emitted after the value changes |
-| `@change` | `null` | Emitted after an option is selected or deselected |
-| `@select` | `(option)` | Emitted after an option is selected |
-| `@deselect` | `(option)` | Emitted after an option is deselected |
-| `@search-change` | `(searchQuery)` | Emitted after the search query changes |
-| `@load-more` | `null` | Emitted after dropdown has been scrolled past the `load-more-threshold` |
+| `@input` | `(options)` | Fires when the value changes |
+| `@change` | `null` | Fires when an option is selected or deselected |
+| `@select` | `(option)` | Fires when an option is selected |
+| `@deselect` | `(option)` | Fires when an option is deselected |
+| `@search-change` | `(searchQuery)` | Fires when the search query changes |
+| `@load-more` | `null` | Fires when the `load-more-threshold` of the dropdown has been scrolled past |
 
 ### Slots
 
