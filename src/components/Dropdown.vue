@@ -59,6 +59,11 @@ export default {
             default: false,
         },
 
+        loadMoreThreshold: {
+            type: Number,
+            required: true,
+        },
+
         noOptionsMessage: {
             type: String,
             required: true,
@@ -71,7 +76,6 @@ export default {
 
             lastScroll: 0,
             scrollableHeight: 0,
-            scrollLoaderThreshold: 60,
         };
     },
 
@@ -192,7 +196,7 @@ export default {
             if (
                 ! this.loadingMore
                 && currentScroll > this.lastScroll
-                && (this.scrollableHeight - currentScroll) < this.scrollLoaderThreshold
+                && (this.scrollableHeight - currentScroll) < this.loadMoreThreshold
             ) {
                 this.lastScroll = currentScroll;
 

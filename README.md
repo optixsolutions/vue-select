@@ -71,55 +71,80 @@ todo
 
 ## Options
 
-### Required Props
+### Props
 
 | Name | Type | Default | Description |
-| ---- | ---- | ------- | ----------- |
-| v-model | `Array`, `Number`, `String` | `null` | todo |
-| options | `Array` | `[]` | An array of `Objects`, value will default to `option.value` and label will default to `option.label`. |
-
-### Optional Props
-
-| Name | Type | Default | Description |
-| ---- | ---- | ------- | ----------- |
-| id | `String` | `null` | Used to identify the component in events. |
+| :--- | :--- | :------ | :---------- |
+| v-model | `Array`, `Number`, `String` | `null` | Bind selected values between the Vue Select and your data |
+| options | `Array` | `[]` | An array of objects, value will default to `option.value` and label will default to `option.label` |
+| id | `String` | `null` | Used to identify the component in events |
 | option-identifier | `String` | `'value'` | Name of the identifier used within the options `Object` |
 | option-label | `String` | `'label'` | Name of the label used within the  options `Object`, this will be visible in the dropdown |
 | loading | `Boolean` | `false` | Show / hide the loading indicator |
+| loading-more | `Boolean` | `false` | Show / hide loading indicator when scrolled to bottom of options list |
+| multiple | `Boolean` | `false` | Allows multiple options to be selected |
+| disabled | `Boolean` | `false` | Enable / disable select |
+| searchable | `Boolean` | `true` | Show / hide search input |
+| open-direction | `String` | `'auto'` | Fix opening direction, options: `'down'`, `'up'` |
+| placeholder | `String` | `'Please select...'` | Default placeholder text on select element |
+| load-more-threshold | `Number` | `60` | Distance in px from bottom of dropdown before `@load-more` is emitted. |
+| no-options-message | `String` | `'No options found.'` | Message shown when no options are provided |
 
-`loading` - Boolean, shows loading indicator when set to `true`
-`loading-more` - Boolean, shows loading notifcation when scrolled to bottom of options list when set to `true`
-`multiple` - Boolean (default: false)
-`searchable` - Boolean (default: true)
-`open-direction` - String ['auto', 'down', 'up'] (default: 'auto')
-`placeholder` - String (default: Please select...)
-`no-options-message` - String (default: No options found.)
+### Events
 
-## Events
+| Event | Attributes | Description |
+| :---- | :--------- | :---------- |
+| `@input` | `(option|options)` | Emitted after the value changes |
+| `@change` | `null` | Emitted after an option is selected or deselected |
+| `@select` | `(option)` | Emitted after an option is selected |
+| `@deselect` | `(option)` | Emitted after an option is deselected |
+| `@search-change` | `(searchQuery)` | Emitted after the search query changes |
+| `@load-more` | `null` | Emitted after dropdown has been scrolled past the `load-more-threshold` |
 
-`@select`
-`@deselect`
-`@load-more`
-`@search-change`
+### Slots
 
-## Slots
+#### Dropdown Option
 
-`menu-option` - Slot-scope `option`, `classes`
+**Name:** `dropdown-option`<br>
+**Description:** Custom option template
 
+**Slot-scope:**
+- `option` - `Object` of the current option
+- `classes` - `Object` containing 3 classes
+```javascript
+{
+    focused: false,
+    selected: false,
+    disabled: false,
+}
+```
 ```html
-<template #menu-option="{ option, classes }">
-    <div class="multiselect-select-menu-option" :class="classes">
+<template #dropdown-option="{ option, classes }">
+    <div class="vs-dropdown-option" :class="classes">
         {{ option.label }}
     </div>
 </template>
 ```
+#### Dropdown Loader
 
-`menu-loader`
+**Name:** `dropdown-loader`<br>
+**Description:** Shows when no options are passed into the select
+
+**Default:** Loading...
 
 ```html
-<template #menu-loader>
-    <div class="multiselect-select-menu-loading">
+<template #dropdown-loader>
+    <div class="vs-dropdown-loader">
         Loading...
     </div>
 </template>
 ```
+
+## TODOs
+
+- Throttle `@search-change` event, with default throttle rate specified via prop
+- Throttle dropdown scroll `@load-more` event, with default throttle rate specified via prop
+
+## License
+
+The MIT License (MIT). Please see [License File](LICENSE.md) for more information.

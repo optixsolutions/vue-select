@@ -76,6 +76,7 @@
                 :selected-options="selectedOptions"
                 :option-identifier="optionIdentifier"
                 :no-options-message="noOptionsMessage"
+                :load-more-threshold="loadMoreThreshold"
                 @load-more="$emit('load-more')"
                 @select-option="selectOption"
                 @deselect-option="deselectOption"
@@ -173,6 +174,11 @@ export default {
                     'auto', 'down', 'up',
                 ].indexOf(value) !== -1;
             },
+        },
+
+        scrollLoaderThreshold: {
+            type: Number,
+            default: 60,
         },
 
         noOptionsMessage: {
