@@ -75,7 +75,7 @@ todo
 
 | Name | Type | Default Value | Description |
 | :--- | :--- | :------------ | :---------- |
-| value | `Array||Number||String` | `null` | Selects the given options |
+| value | `Array\|\|Number\|\|String` | `null` | Selects the given options |
 | options | `Array` | `[]` | An array of objects, value will default to `option.value` and label will default to `option.label` |
 | id | `String` | `null` | Applied to the underlying input |
 | option-identifier | `String` | `'value'` | Name of the identifier used within the options `Object` |
@@ -85,7 +85,7 @@ todo
 | multiple | `Boolean` | `false` | Allows multiple options to be selected |
 | disabled | `Boolean` | `false` | Enable / disable select |
 | searchable | `Boolean` | `true` | Show / hide search input |
-| open-direction | `String` | `'auto'` | Fix opening direction, options:  `'auto'||'down'||'up'` |
+| open-direction | `String` | `'auto'` | Fix opening direction, options:  `'auto'\|\|'down'\|\|'up'` |
 | placeholder | `String` | `'Please select...'` | Default placeholder text on select element |
 | load-more-threshold | `Number` | `60` | Distance in px from bottom of dropdown before `@load-more` is fired. |
 | no-options-message | `String` | `'No options found.'` | Message shown when no options are provided |
