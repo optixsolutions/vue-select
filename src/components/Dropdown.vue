@@ -59,6 +59,11 @@ export default {
             default: false,
         },
 
+        multiple: {
+            type: Boolean,
+            required: true,
+        },
+
         noOptionsMessage: {
             type: String,
             required: true,
@@ -263,7 +268,10 @@ export default {
                     return;
                 }
 
-                if (this.optionIsSelected(option[this.optionIdentifier])) {
+                if (
+                    this.optionIsSelected(option[this.optionIdentifier])
+                    && this.multiple
+                ) {
                     return this.$emit('deselect-option', option);
                 }
 

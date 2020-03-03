@@ -45,7 +45,6 @@
                             :id="id"
                             ref="input"
                             v-model="searchQuery"
-                            size="2"
                             type="text"
                             :readonly="disabled || ! searchable"
                             :tabindex="disabled ? -1 : 0"
@@ -72,6 +71,7 @@
                 v-if="dropdownIsVisible"
                 ref="dropdown"
                 :options="options"
+                :multiple="multiple"
                 :loading-more="loadingMore"
                 :selected-options="selectedOptions"
                 :option-identifier="optionIdentifier"
@@ -254,7 +254,6 @@ export default {
                     this.$refs.dropdown.scrollToTop();
                 }
 
-                this.$refs.input.setAttribute('size', searchQuery.length + 2);
                 this.$emit('query-change', searchQuery);
             }
         },
