@@ -54,6 +54,7 @@ export default {
                 {
                     value: 'option-two',
                     label: 'Option Two',
+                    disabled: true,
                 }
                 // ...
             ],
@@ -76,10 +77,10 @@ todo
 | Name | Type | Default Value | Description |
 | :--- | :--- | :------------ | :---------- |
 | value | `Array\|\|Number\|\|String` | `null` | Selects the given options |
-| options | `Array` | `[]` | An array of objects, value will default to `option.value` and label will default to `option.label` |
-| id | `String` | `null` | Applied to the underlying input |
+| options | `Array` | `[]` | An array of objects |
 | option-identifier | `String` | `'value'` | Name of the identifier used within the options `Object` |
 | option-label | `String` | `'label'` | Name of the label used within the  options `Object`, this will be visible in the dropdown |
+| id | `String` | `null` | Applied to the underlying input |
 | loading | `Boolean` | `false` | Show / hide the loading indicator |
 | loading-more | `Boolean` | `false` | Show / hide loading indicator when scrolled to bottom of options list |
 | multiple | `Boolean` | `false` | Allows multiple options to be selected |
