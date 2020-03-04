@@ -46,6 +46,7 @@
                             ref="input"
                             v-model="searchQuery"
                             type="text"
+                            :size="(disabled || ! searchable) ? 2 : null"
                             :readonly="disabled || ! searchable"
                             :tabindex="disabled ? -1 : 0"
                             autocomplete="off"
@@ -76,6 +77,8 @@
                 :selected-options="selectedOptions"
                 :option-identifier="optionIdentifier"
                 :no-options-message="noOptionsMessage"
+                :scroll-throttle-wait="scrollThrottleWait"
+                :load-more-threshold="loadMoreThreshold"
                 @load-more="$emit('load-more')"
                 @select-option="selectOption"
                 @deselect-option="deselectOption"
@@ -101,9 +104,6 @@
 </template>
 
 <script>
-// Throttle scroll
-// Throttle searchQuery emit
-
 import SelectDropdown from './Dropdown.vue';
 
 export default {
@@ -152,7 +152,7 @@ export default {
 
         searchable: {
             type: Boolean,
-            default: true,
+            default: false,
         },
 
         placeholder: {
@@ -175,6 +175,21 @@ export default {
             },
         },
 
+        queryChangeWait: {
+            type: Number,
+            default: 150,
+        },
+
+        scrollThrottleWait: {
+            type: Number,
+            default: 150,
+        },
+
+        loadMoreThreshold: {
+            type: Number,
+            default: 60,
+        },
+
         noOptionsMessage: {
             type: String,
             default: 'No options found.',
@@ -188,6 +203,8 @@ export default {
             dropdownIsVisible: false,
             dropdownOpenDirection: 'down',
             selectedOptions: [],
+
+            searchTimeout: null,
         };
     },
 
@@ -250,26 +267,44 @@ export default {
                     this.showDropdown();
                 }
 
-                if (this.dropdownIsVisible) {
+                if (this.$refs.dropdown) {
                     this.$refs.dropdown.scrollToTop();
                 }
 
-                this.$emit('query-change', searchQuery);
+                clearTimeout(this.searchTimeout);
+
+                this.searchTimeout = setTimeout(() => {
+                    this.$emit('query-change', searchQuery);
+                }, this.queryChangeWait);
             }
         },
 
-        selectedOptionValues(selectedOptionValues) {
-            if (! this.disabled) {
-                if (this.multiple) {
-                    return this.$emit('input', selectedOptionValues);
-                }
-
-                if (selectedOptionValues.length !== 0) {
-                    return this.$emit('input', selectedOptionValues[0]);
-                }
-
-                this.$emit('input', null);
+        selectedOptionValues(newValues, oldValues) {
+            // Don't do anything if the select is disabled...
+            if (this.disabled) {
+                return;
             }
+
+            if (this.multiple) {
+                const diff = newValues.filter(value => {
+                    return ! oldValues.includes(value);
+                });
+
+                // Don't emit input if nothing has changed...
+                if (newValues.length === oldValues.length && diff.length === 0) {
+                    return;
+                }
+
+                return this.$emit('input', newValues);
+            }
+
+            // Return null if nothing has been selected...
+            if (newValues.length === 0) {
+                return this.$emit('input', null);
+            }
+
+            // Return the first selected value...
+            this.$emit('input', newValues[0]);
         },
     },
 

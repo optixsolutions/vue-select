@@ -64,6 +64,16 @@ export default {
             required: true,
         },
 
+        scrollThrottleWait: {
+            type: Number,
+            required: true,
+        },
+
+        loadMoreThreshold: {
+            type: Number,
+            required: true,
+        },
+
         noOptionsMessage: {
             type: String,
             required: true,
@@ -76,7 +86,7 @@ export default {
 
             lastScroll: 0,
             scrollableHeight: 0,
-            scrollLoaderThreshold: 60,
+            throttlingScroll: false,
         };
     },
 
@@ -124,6 +134,24 @@ export default {
             },
             deep: true,
         },
+
+        throttlingScroll(throttlingScroll) {
+            if (! throttlingScroll) {
+                const currentScroll = this.$refs.scrollContent.scrollTop;
+
+                if (! this.throttlingScroll) {
+                    if (
+                        ! this.loadingMore
+                        && currentScroll > this.lastScroll
+                        && (this.scrollableHeight - currentScroll) < this.loadMoreThreshold
+                    ) {
+                        this.lastScroll = currentScroll;
+
+                        this.$emit('load-more');
+                    }
+                }
+            }
+        },
     },
 
     created() {
@@ -131,7 +159,7 @@ export default {
     },
 
     mounted() {
-        this.$refs.scrollContent.addEventListener('scroll', this.scrollListener);
+        this.$refs.scrollContent.addEventListener('scroll', this.throttleScroll);
 
         this.setScrollableHeight();
 
@@ -142,7 +170,7 @@ export default {
 
     beforeDestroy() {
         document.removeEventListener('keydown', this.keydownListener);
-        this.$refs.scrollContent.removeEventListener('keydown', this.scrollListener);
+        this.$refs.scrollContent.removeEventListener('keydown', this.throttleScroll);
     },
 
     methods: {
@@ -191,17 +219,13 @@ export default {
             );
         },
 
-        scrollListener() {
-            const currentScroll = this.$refs.scrollContent.scrollTop;
+        throttleScroll() {
+            if (! this.throttlingScroll) {
+                this.throttlingScroll = true;
 
-            if (
-                ! this.loadingMore
-                && currentScroll > this.lastScroll
-                && (this.scrollableHeight - currentScroll) < this.scrollLoaderThreshold
-            ) {
-                this.lastScroll = currentScroll;
-
-                this.$emit('load-more');
+                setTimeout(() => {
+                    this.throttlingScroll = false;
+                }, this.scrollThrottleWait);
             }
         },
 
@@ -285,7 +309,6 @@ export default {
 
         scrollToOption(index) {
             this.$refs[`option-${index}`][0].scrollIntoView({
-                behavior: 'smooth',
                 block: 'nearest',
                 inline: 'start',
             });
