@@ -8,8 +8,8 @@ Enhanced select component for Vue.js, unlike other select components Vue Select 
 - v-model support
 - Single select
 - Multiple select
-- Infinite loading on scroll
-- Searchable
+- Infinite loading on scroll with throttling
+- Searchable with debounce
 - Configurable
 - Themeable
 
@@ -19,7 +19,7 @@ Enhanced select component for Vue.js, unlike other select components Vue Select 
 yarn add @optix/vue-select
 ```
 
-## Mount
+## Setup
 
 ```javascript
 import Vue from 'vue';
@@ -30,7 +30,7 @@ import '@optix/vue-select/dist/vue-select.min.css';
 Vue.use(VueSelect, /* { options } */);
 ```
 
-### Basic usage
+## Basic usage
 
 ```html
 <template>
@@ -48,11 +48,11 @@ export default {
 
             options: [
                 {
-                    value: 'option-one',
+                    value: 1,
                     label: 'Option One',
                 },
                 {
-                    value: 'option-two',
+                    value: 2,
                     label: 'Option Two',
                     disabled: true,
                 }
@@ -62,12 +62,6 @@ export default {
     };
 };
 </script>
-```
-
-```html
-## JSFiddle Example
-
-todo
 ```
 
 ## Options
@@ -84,11 +78,14 @@ todo
 | loading | `Boolean` | `false` | Show / hide the loading indicator |
 | loading-more | `Boolean` | `false` | Show / hide loading indicator when scrolled to bottom of options list |
 | multiple | `Boolean` | `false` | Allows multiple options to be selected |
-| disabled | `Boolean` | `false` | Enable / disable select |
 | searchable | `Boolean` | `true` | Show / hide search input |
-| open-direction | `String` | `'auto'` | Fix opening direction, options:  `'auto'\|\|'down'\|\|'up'` |
 | placeholder | `String` | `'Please select...'` | Default placeholder text on select element |
-| load-more-threshold | `Number` | `60` | Distance in px from bottom of dropdown before `@load-more` is fired. |
+| disabled | `Boolean` | `false` | Enable / disable select |
+| open-direction | `String` | `'auto'` | Fix opening direction, options:  `'auto'\|\|'down'\|\|'up'` |
+| close-on-select | `Boolean` | `null` | Enable opening / closing after selecting an option |
+| query-change-wait | `Number` | `150` | Delay in milliseconds after user finishes typing and `@search-change` is fired |
+| scroll-throttle-wait | `Number` | `150` | Delay in milliseconds between firing scroll events |
+| load-more-threshold | `Number` | `60` | Distance in px from bottom of options dropdown before `@load-more` is fired. |
 | no-options-message | `String` | `'No options found.'` | Message shown when no options are provided |
 
 ### Events
@@ -143,8 +140,8 @@ todo
 
 ## TODOs
 
-- Throttle `@search-change` event, with default throttle rate specified via prop
-- Throttle dropdown scroll `@load-more` event, with default throttle rate specified via prop
+- Working examples
+- Ability to add new options via component
 
 ## License
 
