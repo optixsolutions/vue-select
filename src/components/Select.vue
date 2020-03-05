@@ -250,7 +250,7 @@ export default {
 
         hideDropdownOnSelect() {
             if (this.closeOnSelect === null) {
-                return this.multiple ? false : true;
+                return ! this.multiple;
             }
 
             return this.closeOnSelect;
@@ -259,17 +259,39 @@ export default {
 
     watch: {
         value: {
-            handler(value) {
-                if (this.hasOptions) {
-                    this.setSelectedOptions(value, 'value');
+            handler(values) {
+                if (! this.hasOptions) {
+                    return;
                 }
+
+                if (! this.selectedOptionValues) {
+                    this.setSelectedOptions(values);
+                    return;
+                }
+
+                if (! Array.isArray(values)) {
+                    values = [ values ];
+                }
+
+                const diff = values.filter(value => {
+                    return ! this.selectedOptionValues.includes(value);
+                });
+
+                // Don't set select options if nothing has changed...
+                if (values.length === this.selectedOptionValues.length && diff.length === 0) {
+                    return;
+                }
+
+                this.setSelectedOptions(values);
             },
             immediate: true,
         },
 
         options: {
             handler() {
-                this.setSelectedOptions(this.value, 'options');
+                if (this.options.length === 0) {
+                    this.setSelectedOptions(this.value);
+                }
             },
             deep: true,
         },
@@ -294,32 +316,23 @@ export default {
             }, this.queryChangeWait);
         },
 
-        selectedOptionValues(newValues, oldValues) {
+        selectedOptionValues(values) {
             // Don't do anything if the select is disabled...
             if (this.disabled) {
                 return;
             }
 
             if (this.multiple) {
-                const diff = newValues.filter(value => {
-                    return ! oldValues.includes(value);
-                });
-
-                // Don't emit input if nothing has changed...
-                if (newValues.length === oldValues.length && diff.length === 0) {
-                    return;
-                }
-
-                return this.$emit('input', newValues);
+                return this.$emit('input', values);
             }
 
             // Return null if nothing has been selected...
-            if (newValues.length === 0) {
+            if (values.length === 0) {
                 return this.$emit('input', null);
             }
 
             // Return the first selected value...
-            this.$emit('input', newValues[0]);
+            this.$emit('input', values[0]);
         },
     },
 
@@ -362,7 +375,6 @@ export default {
         },
 
         setSelectedOptions(values) {
-            console.log('setSelectedOptions');
             if (! Array.isArray(values)) {
                 values = [ values ];
             }
@@ -406,13 +418,15 @@ export default {
                 const dropdownRect = this.$refs.dropdown.$el.getBoundingClientRect();
 
                 if ((selectRect.y + selectRect.height + dropdownRect.height) > window.innerHeight) {
-                    return this.dropdownOpenDirection = 'up';
+                    this.dropdownOpenDirection = 'up';
+                    return;
                 }
 
-                return this.dropdownOpenDirection = 'down';
+                this.dropdownOpenDirection = 'down';
+                return;
             }
 
-            return this.dropdownOpenDirection = this.openDirection;
+            this.dropdownOpenDirection = this.openDirection;
         },
 
         activateSelect() {
@@ -479,7 +493,8 @@ export default {
             this.$emit('select', option);
 
             if (this.multiple) {
-                return this.selectedOptions.push(option);
+                this.selectedOptions.push(option);
+                return;
             }
 
             this.selectedOptions = [ option ];

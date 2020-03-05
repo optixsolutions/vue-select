@@ -115,13 +115,13 @@ export default {
         },
 
         focusedOptionIndex() {
-            if (this.focusedOption) {
-                return this.options.findIndex(option => {
-                    return option[this.optionIdentifier] === this.focusedOption[this.optionIdentifier];
-                });
+            if (! this.focusedOption) {
+                return null;
             }
 
-            return null;
+            return this.options.findIndex(option => {
+                return option[this.optionIdentifier] === this.focusedOption[this.optionIdentifier];
+            });
         },
 
         lastOptionIndex() {
@@ -192,12 +192,13 @@ export default {
                 e.preventDefault();
 
                 if (this.focusableOptions.length === 1) {
-                    return this.toggleSelectedOption(
+                    this.toggleSelectedOption(
                         this.focusableOptions[0],
                     );
+                    return;
                 }
 
-                return this.toggleSelectedOption(
+                this.toggleSelectedOption(
                     this.options[this.focusedOptionIndex],
                 );
             }
@@ -309,7 +310,8 @@ export default {
                 this.optionIsSelected(option[this.optionIdentifier])
                 && this.multiple
             ) {
-                return this.$emit('deselect-option', option);
+                this.$emit('deselect-option', option);
+                return;
             }
 
             this.$emit('select-option', option);
