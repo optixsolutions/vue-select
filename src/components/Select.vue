@@ -17,8 +17,8 @@
 
                     <template v-if="hasValue && multiple">
                         <div
-                            v-for="selectedOption in selectedOptions"
-                            :key="selectedOption[optionIdentifier]"
+                            v-for="(selectedOption, index) in selectedOptions"
+                            :key="index"
                             class="vs-select-multiple-value"
                             @click.stop
                         >
@@ -361,16 +361,43 @@ export default {
             }
         },
 
-        setSelectedOptions(value) {
-            if (! value) {
-                return this.selectedOptions = [];
+        setSelectedOptions(values) {
+            console.log('setSelectedOptions');
+            if (! Array.isArray(values)) {
+                values = [ values ];
             }
 
-            const values = Array.isArray(value) ? value : [ value ];
+            if (values.length === 0) {
+                this.selectedOptions = [];
+                return;
+            }
 
-            this.selectedOptions = this.options.filter(selectedOption => {
-                return values.includes(selectedOption[this.optionIdentifier]);
+            let options = [ ...this.options ];
+            let optionsCache = {};
+            let selectedOptions = [];
+
+            values.forEach(value => {
+                const cachedOption = optionsCache[value];
+
+                if (cachedOption) {
+                    selectedOptions.push(this.formatSelectedOption(cachedOption));
+                    return;
+                }
+
+                options.some((option, index) => {
+                    optionsCache[option[this.optionIdentifier]] = { ...option };
+
+                    if (option[this.optionIdentifier] === value) {
+                        selectedOptions.push(this.formatSelectedOption(option));
+
+                        // Remove all options before current index...
+                        options.splice(0, index + 1);
+                        return true;
+                    }
+                });
             });
+
+            this.selectedOptions = selectedOptions;
         },
 
         setDropdownPosition() {
@@ -428,6 +455,13 @@ export default {
                 this.inputIsActive = false;
                 this.dropdownIsVisible = false;
             }
+        },
+
+        formatSelectedOption(option) {
+            return {
+                [this.optionIdentifier]: option[this.optionIdentifier],
+                [this.optionLabel]: option[this.optionLabel],
+            };
         },
 
         selectOption(option) {
