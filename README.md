@@ -142,6 +142,7 @@ export default {
 
 - Write tests
 - Working examples
+- Example on styling
 - Ability to add new options via component
 
 ## License
