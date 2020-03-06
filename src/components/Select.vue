@@ -526,7 +526,7 @@ export default {
             this.searchTimeout = setTimeout(() => {
                 this.$emit('query-change', searchQuery);
             }, this.searchDebounceDelay);
-        }
+        },
     },
 };
 </script>

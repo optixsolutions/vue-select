@@ -1,3 +1,74 @@
+function _defineProperty(obj, key, value) {
+  if (key in obj) {
+    Object.defineProperty(obj, key, {
+      value: value,
+      enumerable: true,
+      configurable: true,
+      writable: true
+    });
+  } else {
+    obj[key] = value;
+  }
+
+  return obj;
+}
+
+function ownKeys(object, enumerableOnly) {
+  var keys = Object.keys(object);
+
+  if (Object.getOwnPropertySymbols) {
+    var symbols = Object.getOwnPropertySymbols(object);
+    if (enumerableOnly) symbols = symbols.filter(function (sym) {
+      return Object.getOwnPropertyDescriptor(object, sym).enumerable;
+    });
+    keys.push.apply(keys, symbols);
+  }
+
+  return keys;
+}
+
+function _objectSpread2(target) {
+  for (var i = 1; i < arguments.length; i++) {
+    var source = arguments[i] != null ? arguments[i] : {};
+
+    if (i % 2) {
+      ownKeys(Object(source), true).forEach(function (key) {
+        _defineProperty(target, key, source[key]);
+      });
+    } else if (Object.getOwnPropertyDescriptors) {
+      Object.defineProperties(target, Object.getOwnPropertyDescriptors(source));
+    } else {
+      ownKeys(Object(source)).forEach(function (key) {
+        Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key));
+      });
+    }
+  }
+
+  return target;
+}
+
+function _toConsumableArray(arr) {
+  return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _nonIterableSpread();
+}
+
+function _arrayWithoutHoles(arr) {
+  if (Array.isArray(arr)) {
+    for (var i = 0, arr2 = new Array(arr.length); i < arr.length; i++) arr2[i] = arr[i];
+
+    return arr2;
+  }
+}
+
+function _iterableToArray(iter) {
+  if (Symbol.iterator in Object(iter) || Object.prototype.toString.call(iter) === "[object Arguments]") return Array.from(iter);
+}
+
+function _nonIterableSpread() {
+  throw new TypeError("Invalid attempt to spread non-iterable instance");
+}
+
+//
+//
 //
 //
 //
@@ -58,6 +129,18 @@ var script = {
       type: Boolean,
       default: false
     },
+    multiple: {
+      type: Boolean,
+      required: true
+    },
+    scrollThrottleDelay: {
+      type: Number,
+      required: true
+    },
+    loadMoreThreshold: {
+      type: Number,
+      required: true
+    },
     noOptionsMessage: {
       type: String,
       required: true
@@ -65,10 +148,11 @@ var script = {
   },
   data: function data() {
     return {
+      showPointer: true,
       focusedOption: null,
       lastScroll: 0,
       scrollableHeight: 0,
-      scrollLoaderThreshold: 60
+      throttlingScroll: false
     };
   },
   computed: {
@@ -93,13 +177,13 @@ var script = {
     focusedOptionIndex: function focusedOptionIndex() {
       var _this2 = this;
 
-      if (this.focusedOption) {
-        return this.options.findIndex(function (option) {
-          return option[_this2.optionIdentifier] === _this2.focusedOption[_this2.optionIdentifier];
-        });
+      if (!this.focusedOption) {
+        return null;
       }
 
-      return null;
+      return this.options.findIndex(function (option) {
+        return option[_this2.optionIdentifier] === _this2.focusedOption[_this2.optionIdentifier];
+      });
     },
     lastOptionIndex: function lastOptionIndex() {
       return this.options.length - 1;
@@ -112,13 +196,21 @@ var script = {
         this.setScrollableHeight();
       },
       deep: true
+    },
+    throttlingScroll: function throttlingScroll(_throttlingScroll) {
+      if (_throttlingScroll) {
+        return;
+      }
+
+      this.handleScrollEvent();
     }
   },
   created: function created() {
     document.addEventListener('keydown', this.keydownListener);
+    document.addEventListener('mousemove', this.mouseMove);
   },
   mounted: function mounted() {
-    this.$refs.scrollContent.addEventListener('scroll', this.scrollListener);
+    this.$refs.scrollContent.addEventListener('scroll', this.throttleScroll);
     this.setScrollableHeight();
 
     if (this.hasFocusableOptions) {
@@ -127,44 +219,70 @@ var script = {
   },
   beforeDestroy: function beforeDestroy() {
     document.removeEventListener('keydown', this.keydownListener);
-    this.$refs.scrollContent.removeEventListener('keydown', this.scrollListener);
+    document.removeEventListener('mousemove', this.mouseMove);
+    this.$refs.scrollContent.removeEventListener('keydown', this.throttleScroll);
   },
   methods: {
     keydownListener: function keydownListener(e) {
-      if (this.hasFocusableOptions) {
-        // Enter
-        if (e.keyCode === 13) {
-          e.preventDefault();
-
-          if (this.focusableOptions.length === 1) {
-            return this.toggleSelectedOption(this.focusableOptions[0]);
-          }
-
-          return this.toggleSelectedOption(this.options[this.focusedOptionIndex]);
-        } // Arrow up
+      if (!this.hasFocusableOptions) {
+        return;
+      } // Enter
 
 
-        if (e.keyCode === 38) {
-          var previousIndex = this.getPreviousFocusableIndex(this.focusedOptionIndex);
-          this.setFocusedOption(this.options[previousIndex]);
-          this.scrollToOption(previousIndex);
-        } // Arrow down
+      if (e.keyCode === 13) {
+        e.preventDefault();
 
-
-        if (e.keyCode === 40) {
-          var nextIndex = this.getNextFocusableIndex(this.focusedOptionIndex);
-          this.setFocusedOption(this.options[nextIndex]);
-          this.scrollToOption(nextIndex);
+        if (this.focusableOptions.length === 1) {
+          this.toggleSelectedOption(this.focusableOptions[0]);
+          return;
         }
+
+        this.toggleSelectedOption(this.options[this.focusedOptionIndex]);
+      } // Arrow up
+
+
+      if (e.keyCode === 38) {
+        this.showPointer = false;
+        var previousIndex = this.getPreviousFocusableIndex(this.focusedOptionIndex);
+        this.setFocusedOption(this.options[previousIndex]);
+        this.scrollToOption(previousIndex);
+      } // Arrow down
+
+
+      if (e.keyCode === 40) {
+        this.showPointer = false;
+        var nextIndex = this.getNextFocusableIndex(this.focusedOptionIndex);
+        this.setFocusedOption(this.options[nextIndex]);
+        this.scrollToOption(nextIndex);
       }
+    },
+    mouseMove: function mouseMove() {
+      this.showPointer = true;
     },
     setScrollableHeight: function setScrollableHeight() {
       this.scrollableHeight = this.$refs.scrollContent.scrollHeight - this.$refs.scrollContent.clientHeight;
     },
-    scrollListener: function scrollListener() {
+    throttleScroll: function throttleScroll() {
+      var _this3 = this;
+
+      if (this.scrollThrottleDelay <= 0) {
+        this.handleScrollEvent();
+        return;
+      }
+
+      if (this.throttlingScroll) {
+        return;
+      }
+
+      this.throttlingScroll = true;
+      setTimeout(function () {
+        _this3.throttlingScroll = false;
+      }, this.scrollThrottleDelay);
+    },
+    handleScrollEvent: function handleScrollEvent() {
       var currentScroll = this.$refs.scrollContent.scrollTop;
 
-      if (!this.loadingMore && currentScroll > this.lastScroll && this.scrollableHeight - currentScroll < this.scrollLoaderThreshold) {
+      if (!this.loadingMore && currentScroll > this.lastScroll && this.scrollableHeight - currentScroll < this.loadMoreThreshold) {
         this.lastScroll = currentScroll;
         this.$emit('load-more');
       }
@@ -206,9 +324,6 @@ var script = {
     setFocusedOption: function setFocusedOption(option) {
       this.focusedOption = option;
     },
-    clearFocusedOption: function clearFocusedOption() {
-      this.focusedOption = null;
-    },
     optionIsFocused: function optionIsFocused(value) {
       return this.focusedOption && this.focusedOption[this.optionIdentifier] === value;
     },
@@ -219,24 +334,22 @@ var script = {
       return option.disabled || false;
     },
     toggleSelectedOption: function toggleSelectedOption(option) {
-      if (option) {
-        if (this.optionIsDisabled(option)) {
-          return;
-        }
-
-        if (this.optionIsSelected(option[this.optionIdentifier])) {
-          return this.$emit('deselect-option', option);
-        }
-
-        this.$emit('select-option', option);
+      if (!option || this.optionIsDisabled(option)) {
+        return;
       }
+
+      if (this.optionIsSelected(option[this.optionIdentifier]) && this.multiple) {
+        this.$emit('deselect-option', option);
+        return;
+      }
+
+      this.$emit('select-option', option);
     },
     scrollToTop: function scrollToTop() {
       this.$refs.scrollContent.scrollTo(0, 0);
     },
     scrollToOption: function scrollToOption(index) {
       this.$refs["option-".concat(index)][0].scrollIntoView({
-        behavior: 'smooth',
         block: 'nearest',
         inline: 'start'
       });
@@ -331,7 +444,8 @@ var __vue_render__ = function __vue_render__() {
   var _c = _vm._self._c || _h;
 
   return _c("div", {
-    staticClass: "vs-dropdown"
+    staticClass: "vs-dropdown",
+    class: !_vm.showPointer ? "pointer-events-none" : ""
   }, [_c("div", {
     ref: "scrollContent",
     staticClass: "vs-dropdown-scroll"
@@ -347,7 +461,6 @@ var __vue_render__ = function __vue_render__() {
           $event.stopPropagation();
           return _vm.toggleSelectedOption(option);
         },
-        mouseout: _vm.clearFocusedOption,
         mouseenter: function mouseenter($event) {
           return _vm.setFocusedOption(option);
         }
@@ -388,7 +501,6 @@ var __vue_component__ = normalizeComponent({
   staticRenderFns: __vue_staticRenderFns__
 }, __vue_inject_styles__, __vue_script__, __vue_scope_id__, __vue_is_functional_template__, __vue_module_identifier__, false, undefined, undefined, undefined);
 
-//
 var script$1 = {
   components: {
     SelectDropdown: __vue_component__
@@ -432,7 +544,7 @@ var script$1 = {
     },
     searchable: {
       type: Boolean,
-      default: true
+      default: false
     },
     placeholder: {
       type: String,
@@ -449,6 +561,22 @@ var script$1 = {
         return ['auto', 'down', 'up'].indexOf(value) !== -1;
       }
     },
+    closeOnSelect: {
+      type: Boolean,
+      default: null
+    },
+    searchDebounceDelay: {
+      type: Number,
+      default: 150
+    },
+    scrollThrottleDelay: {
+      type: Number,
+      default: 150
+    },
+    loadMoreThreshold: {
+      type: Number,
+      default: 60
+    },
     noOptionsMessage: {
       type: String,
       default: 'No options found.'
@@ -460,7 +588,8 @@ var script$1 = {
       inputIsActive: false,
       dropdownIsVisible: false,
       dropdownOpenDirection: 'down',
-      selectedOptions: []
+      selectedOptions: [],
+      searchTimeout: null
     };
   },
   computed: {
@@ -493,97 +622,160 @@ var script$1 = {
       }
 
       return this.selectedOptions[0];
+    },
+    hideDropdownOnSelect: function hideDropdownOnSelect() {
+      if (this.closeOnSelect === null) {
+        return !this.multiple;
+      }
+
+      return this.closeOnSelect;
     }
   },
   watch: {
     value: {
-      handler: function handler(value) {
-        if (this.hasOptions) {
-          this.setSelectedOptions(value, 'value');
+      handler: function handler(values) {
+        var _this2 = this;
+
+        if (!this.hasOptions) {
+          return;
         }
+
+        if (!this.selectedOptionValues) {
+          this.setSelectedOptions(values);
+          return;
+        }
+
+        if (!Array.isArray(values)) {
+          values = [values];
+        }
+
+        var diff = values.filter(function (value) {
+          return !_this2.selectedOptionValues.includes(value);
+        }); // Don't set select options if nothing has changed...
+
+        if (values.length === this.selectedOptionValues.length && diff.length === 0) {
+          return;
+        }
+
+        this.setSelectedOptions(values);
       },
       immediate: true
     },
     options: {
       handler: function handler() {
-        this.setSelectedOptions(this.value, 'options');
+        if (this.options.length === 0) {
+          this.setSelectedOptions(this.value);
+        }
       },
       deep: true
     },
     searchQuery: function searchQuery(_searchQuery) {
-      if (!this.disabled) {
-        if (this.hasSearchQuery) {
-          this.showDropdown();
-        }
-
-        if (this.dropdownIsVisible) {
-          this.$refs.dropdown.scrollToTop();
-        }
-
-        this.$refs.input.setAttribute('size', _searchQuery.length + 2);
-        this.$emit('query-change', _searchQuery);
+      if (this.disabled) {
+        return;
       }
+
+      if (this.hasSearchQuery) {
+        this.showDropdown();
+      }
+
+      if (this.$refs.dropdown) {
+        this.$refs.dropdown.scrollToTop();
+      }
+
+      this.emitSearchQuery(_searchQuery);
     },
-    selectedOptionValues: function selectedOptionValues(_selectedOptionValues) {
-      if (!this.disabled) {
-        if (this.multiple) {
-          return this.$emit('input', _selectedOptionValues);
-        }
-
-        if (_selectedOptionValues.length !== 0) {
-          return this.$emit('input', _selectedOptionValues[0]);
-        }
-
-        this.$emit('input', null);
+    selectedOptionValues: function selectedOptionValues(values) {
+      // Don't do anything if the select is disabled...
+      if (this.disabled) {
+        return;
       }
+
+      if (this.multiple) {
+        return this.$emit('input', values);
+      } // Return null if nothing has been selected...
+
+
+      if (values.length === 0) {
+        return this.$emit('input', null);
+      } // Return the first selected value...
+
+
+      this.$emit('input', values[0]);
     }
   },
   created: function created() {
-    var _this2 = this;
+    var _this3 = this;
 
     ['click', 'touchstart'].forEach(function (action) {
-      document.addEventListener(action, _this2.deactivateSelectOnClick);
+      document.addEventListener(action, _this3.deactivateSelectOnClick);
     });
     document.addEventListener('keydown', this.keydownListener);
   },
   destroyed: function destroyed() {
-    var _this3 = this;
+    var _this4 = this;
 
     ['click', 'touchstart'].forEach(function (action) {
-      document.removeEventListener(action, _this3.deactivateSelectOnClick);
+      document.removeEventListener(action, _this4.deactivateSelectOnClick);
     });
     document.removeEventListener('keydown', this.keydownListener);
   },
   methods: {
     keydownListener: function keydownListener(e) {
-      if (!this.disabled) {
-        // Arrow down
-        if (e.keyCode === 40 && this.inputIsActive && !this.dropdownIsVisible) {
-          this.dropdownIsVisible = true;
-        } // Delete
+      if (this.disabled) {
+        return;
+      } // Arrow down
 
 
-        if (e.keyCode === 8 && this.inputIsActive && this.hasValue && !this.multiple) {
-          this.selectedOptions = [];
-        } // Tab, Escape
+      if (e.keyCode === 40 && this.inputIsActive && !this.dropdownIsVisible) {
+        this.dropdownIsVisible = true;
+      } // Delete
 
 
-        if ((e.keyCode === 9 || e.keyCode === 27) && this.dropdownIsVisible) {
-          this.dropdownIsVisible = false;
-        }
+      if (e.keyCode === 8 && this.inputIsActive && this.hasValue && !this.multiple) {
+        this.selectedOptions = [];
+      } // Tab, Escape
+
+
+      if ((e.keyCode === 9 || e.keyCode === 27) && this.dropdownIsVisible) {
+        this.dropdownIsVisible = false;
       }
     },
-    setSelectedOptions: function setSelectedOptions(value) {
-      var _this4 = this;
+    setSelectedOptions: function setSelectedOptions(values) {
+      var _this5 = this;
 
-      if (!value) {
-        return this.selectedOptions = [];
+      if (!Array.isArray(values)) {
+        values = [values];
       }
 
-      var values = Array.isArray(value) ? value : [value];
-      this.selectedOptions = this.options.filter(function (selectedOption) {
-        return values.includes(selectedOption[_this4.optionIdentifier]);
+      if (values.length === 0) {
+        this.selectedOptions = [];
+        return;
+      }
+
+      var options = _toConsumableArray(this.options);
+
+      var optionsCache = {};
+      var selectedOptions = [];
+      values.forEach(function (value) {
+        var cachedOption = optionsCache[value];
+
+        if (cachedOption) {
+          selectedOptions.push(_this5.formatSelectedOption(cachedOption));
+          return;
+        }
+
+        options.some(function (option, index) {
+          optionsCache[option[_this5.optionIdentifier]] = _objectSpread2({}, option);
+
+          if (option[_this5.optionIdentifier] === value) {
+            selectedOptions.push(_this5.formatSelectedOption(option)); // Remove all options before current index...
+
+            options.splice(0, index + 1);
+            return true;
+          }
+        });
       });
+      this.selectedOptions = selectedOptions;
     },
     setDropdownPosition: function setDropdownPosition() {
       if (this.openDirection === 'auto') {
@@ -591,19 +783,23 @@ var script$1 = {
         var dropdownRect = this.$refs.dropdown.$el.getBoundingClientRect();
 
         if (selectRect.y + selectRect.height + dropdownRect.height > window.innerHeight) {
-          return this.dropdownOpenDirection = 'up';
+          this.dropdownOpenDirection = 'up';
+          return;
         }
 
-        return this.dropdownOpenDirection = 'down';
+        this.dropdownOpenDirection = 'down';
+        return;
       }
 
-      return this.dropdownOpenDirection = this.openDirection;
+      this.dropdownOpenDirection = this.openDirection;
     },
     activateSelect: function activateSelect() {
-      if (!this.disabled) {
-        this.focusInput();
-        this.showDropdown();
+      if (this.disabled) {
+        return;
       }
+
+      this.focusInput();
+      this.showDropdown();
     },
     focusInput: function focusInput() {
       this.$refs.input.focus();
@@ -613,14 +809,16 @@ var script$1 = {
       this.inputIsActive = false;
     },
     showDropdown: function showDropdown() {
-      var _this5 = this;
+      var _this6 = this;
 
-      if (!this.disabled && !this.dropdownIsVisible) {
-        this.dropdownIsVisible = true;
-        this.$nextTick(function () {
-          _this5.setDropdownPosition();
-        });
+      if (this.disabled || this.dropdownIsVisible) {
+        return;
       }
+
+      this.dropdownIsVisible = true;
+      this.$nextTick(function () {
+        _this6.setDropdownPosition();
+      });
     },
     deactivateSelectOnClick: function deactivateSelectOnClick(event) {
       if (this.dropdownIsVisible && this.$refs.select !== event.target && !this.$refs.select.contains(event.target)) {
@@ -629,32 +827,61 @@ var script$1 = {
         this.dropdownIsVisible = false;
       }
     },
+    formatSelectedOption: function formatSelectedOption(option) {
+      var _ref;
+
+      return _ref = {}, _defineProperty(_ref, this.optionIdentifier, option[this.optionIdentifier]), _defineProperty(_ref, this.optionLabel, option[this.optionLabel]), _ref;
+    },
     selectOption: function selectOption(option) {
-      if (!this.disabled) {
+      if (this.disabled) {
+        return;
+      }
+
+      if (this.hideDropdownOnSelect) {
         this.focusInput();
         this.searchQuery = '';
         this.dropdownIsVisible = false;
-        this.$emit('change');
-        this.$emit('select', option);
-
-        if (this.multiple) {
-          return this.selectedOptions.push(option);
-        }
-
-        this.selectedOptions = [option];
       }
+
+      this.$emit('change');
+      this.$emit('select', option);
+
+      if (this.multiple) {
+        this.selectedOptions.push(option);
+        return;
+      }
+
+      this.selectedOptions = [option];
     },
     deselectOption: function deselectOption(option) {
-      var _this6 = this;
+      var _this7 = this;
 
-      if (!this.disabled) {
-        this.dropdownIsVisible = false;
-        this.$emit('change');
-        this.$emit('deselect', option);
-        this.selectedOptions = this.selectedOptions.filter(function (selectedOption) {
-          return selectedOption[_this6.optionIdentifier] !== option[_this6.optionIdentifier];
-        });
+      if (this.disabled) {
+        return;
       }
+
+      if (this.hideDropdownOnSelect) {
+        this.dropdownIsVisible = false;
+      }
+
+      this.$emit('change');
+      this.$emit('deselect', option);
+      this.selectedOptions = this.selectedOptions.filter(function (selectedOption) {
+        return selectedOption[_this7.optionIdentifier] !== option[_this7.optionIdentifier];
+      });
+    },
+    emitSearchQuery: function emitSearchQuery(searchQuery) {
+      var _this8 = this;
+
+      if (this.searchDebounceDelay <= 0) {
+        this.$emit('query-change', searchQuery);
+        return;
+      }
+
+      clearTimeout(this.searchTimeout);
+      this.searchTimeout = setTimeout(function () {
+        _this8.$emit('query-change', searchQuery);
+      }, this.searchDebounceDelay);
     }
   }
 };
@@ -685,9 +912,9 @@ var __vue_render__$1 = function __vue_render__() {
     staticClass: "vs-select-container"
   }, [!_vm.hasValue && !_vm.hasSearchQuery ? _c("div", {
     staticClass: "vs-select-placeholder"
-  }, [_vm._v("\n                    " + _vm._s(_vm.placeholder) + "\n                ")]) : _vm._e(), _vm._v(" "), _vm.hasValue && _vm.multiple ? _vm._l(_vm.selectedOptions, function (selectedOption) {
+  }, [_vm._v("\n                    " + _vm._s(_vm.placeholder) + "\n                ")]) : _vm._e(), _vm._v(" "), _vm.hasValue && _vm.multiple ? _vm._l(_vm.selectedOptions, function (selectedOption, index) {
     return _c("div", {
-      key: selectedOption[_vm.optionIdentifier],
+      key: index,
       staticClass: "vs-select-multiple-value",
       on: {
         click: function click($event) {
@@ -718,8 +945,8 @@ var __vue_render__$1 = function __vue_render__() {
     ref: "input",
     attrs: {
       id: _vm.id,
-      size: "2",
       type: "text",
+      size: _vm.disabled || !_vm.searchable ? 2 : null,
       readonly: _vm.disabled || !_vm.searchable,
       tabindex: _vm.disabled ? -1 : 0,
       autocomplete: "off"
@@ -752,10 +979,13 @@ var __vue_render__$1 = function __vue_render__() {
     ref: "dropdown",
     attrs: {
       options: _vm.options,
+      multiple: _vm.multiple,
       "loading-more": _vm.loadingMore,
       "selected-options": _vm.selectedOptions,
       "option-identifier": _vm.optionIdentifier,
-      "no-options-message": _vm.noOptionsMessage
+      "no-options-message": _vm.noOptionsMessage,
+      "scroll-throttle-delay": _vm.scrollThrottleDelay,
+      "load-more-threshold": _vm.loadMoreThreshold
     },
     on: {
       "load-more": function loadMore($event) {
@@ -782,7 +1012,9 @@ var __vue_render__$1 = function __vue_render__() {
       fn: function fn() {
         return [_vm._t("dropdown-loader", [_c("div", {
           staticClass: "vs-dropdown-loader"
-        }, [_vm._v("\n                        Loading...\n                    ")])])];
+        }, [_c("div", {
+          staticClass: "vs-loader-dots"
+        }, [_vm._v("\n                            Loading\n                        ")])])])];
       },
       proxy: true
     }], null, true)
