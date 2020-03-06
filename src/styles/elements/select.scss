@@ -77,6 +77,7 @@
 
 .vs-select-placeholder {
     top: 50%;
+    z-index: 1;
     margin-left: 2px;
     user-select: none;
     margin-right: 2px;
@@ -86,15 +87,18 @@
 }
 
 .vs-select-input {
+    z-index: 2;
     margin: 2px;
+    flex-grow: 1;
     padding-top: 2px;
+    position: relative;
     padding-bottom: 2px;
     color: $vs-select-input-color;
 
     input {
         outline: 0;
         padding: 0;
-        width: auto;
+        width: 100%;
         border: 0px;
         color: inherit;
         font-size: inherit;
