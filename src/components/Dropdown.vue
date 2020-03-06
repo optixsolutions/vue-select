@@ -66,7 +66,7 @@ export default {
             required: true,
         },
 
-        scrollThrottleWait: {
+        scrollThrottleDelay: {
             type: Number,
             required: true,
         },
@@ -143,19 +143,7 @@ export default {
                 return;
             }
 
-            const currentScroll = this.$refs.scrollContent.scrollTop;
-
-            if (! this.throttlingScroll) {
-                if (
-                    ! this.loadingMore
-                    && currentScroll > this.lastScroll
-                    && (this.scrollableHeight - currentScroll) < this.loadMoreThreshold
-                ) {
-                    this.lastScroll = currentScroll;
-
-                    this.$emit('load-more');
-                }
-            }
+            this.handleScrollEvent();
         },
     },
 
@@ -239,12 +227,33 @@ export default {
         },
 
         throttleScroll() {
-            if (! this.throttlingScroll) {
-                this.throttlingScroll = true;
+            if (this.scrollThrottleDelay <= 0) {
+                this.handleScrollEvent();
+                return;
+            }
 
-                setTimeout(() => {
-                    this.throttlingScroll = false;
-                }, this.scrollThrottleWait);
+            if (this.throttlingScroll) {
+                return;
+            }
+
+            this.throttlingScroll = true;
+
+            setTimeout(() => {
+                this.throttlingScroll = false;
+            }, this.scrollThrottleDelay);
+        },
+
+        handleScrollEvent() {
+            const currentScroll = this.$refs.scrollContent.scrollTop;
+
+            if (
+                ! this.loadingMore
+                && currentScroll > this.lastScroll
+                && (this.scrollableHeight - currentScroll) < this.loadMoreThreshold
+            ) {
+                this.lastScroll = currentScroll;
+
+                this.$emit('load-more');
             }
         },
 

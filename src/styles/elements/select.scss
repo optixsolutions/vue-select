@@ -250,3 +250,34 @@
         transform: rotate(360deg);
     }
 }
+
+.vs-loader-dots {
+    &:after {
+        content: ' .';
+        animation: vs-loader-dots 500ms steps(5, end) infinite;
+    }
+}
+
+@keyframes vs-loader-dots {
+    0%, 20% {
+        color: rgba(0,0,0,0);
+        text-shadow: 0.25rem 0 0 rgba(0, 0, 0, 0),
+            0.5rem 0 0 rgba(0, 0, 0, 0);
+    }
+
+    40% {
+        color: $vs-text-color;
+        text-shadow: 0.25rem 0 0 rgba(0, 0, 0, 0),
+            0.5rem 0 0 rgba(0, 0, 0, 0);
+    }
+
+    60% {
+        text-shadow: 0.25rem 0 0 $vs-text-color,
+            0.5rem 0 0 rgba(0, 0, 0, 0);
+    }
+
+    80%, 100% {
+        text-shadow: 0.25rem 0 0 $vs-text-color,
+            0.5rem 0 0 $vs-text-color;
+    }
+}

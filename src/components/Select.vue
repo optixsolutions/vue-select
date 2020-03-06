@@ -77,7 +77,7 @@
                 :selected-options="selectedOptions"
                 :option-identifier="optionIdentifier"
                 :no-options-message="noOptionsMessage"
-                :scroll-throttle-wait="scrollThrottleWait"
+                :scroll-throttle-delay="scrollThrottleDelay"
                 :load-more-threshold="loadMoreThreshold"
                 @load-more="$emit('load-more')"
                 @select-option="selectOption"
@@ -94,7 +94,9 @@
                 <template #dropdown-loader>
                     <slot name="dropdown-loader">
                         <div class="vs-dropdown-loader">
-                            Loading...
+                            <div class="vs-loader-dots">
+                                Loading
+                            </div>
                         </div>
                     </slot>
                 </template>
@@ -180,12 +182,12 @@ export default {
             default: null,
         },
 
-        queryChangeWait: {
+        searchDebounceDelay: {
             type: Number,
             default: 150,
         },
 
-        scrollThrottleWait: {
+        scrollThrottleDelay: {
             type: Number,
             default: 150,
         },
@@ -309,11 +311,7 @@ export default {
                 this.$refs.dropdown.scrollToTop();
             }
 
-            clearTimeout(this.searchTimeout);
-
-            this.searchTimeout = setTimeout(() => {
-                this.$emit('query-change', searchQuery);
-            }, this.queryChangeWait);
+            this.emitSearchQuery(searchQuery);
         },
 
         selectedOptionValues(values) {
@@ -516,6 +514,19 @@ export default {
                 return selectedOption[this.optionIdentifier] !== option[this.optionIdentifier];
             });
         },
+
+        emitSearchQuery(searchQuery) {
+            if (this.searchDebounceDelay <= 0) {
+                this.$emit('query-change', searchQuery);
+                return;
+            }
+
+            clearTimeout(this.searchTimeout);
+
+            this.searchTimeout = setTimeout(() => {
+                this.$emit('query-change', searchQuery);
+            }, this.searchDebounceDelay);
+        }
     },
 };
 </script>

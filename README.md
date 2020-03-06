@@ -83,8 +83,8 @@ export default {
 | disabled | `Boolean` | `false` | Enable / disable select |
 | open-direction | `String` | `'auto'` | Fix opening direction, options:  `'auto'\|\|'down'\|\|'up'` |
 | close-on-select | `Boolean` | `null` | Enable opening / closing after selecting an option |
-| query-change-wait | `Number` | `150` | Delay in milliseconds after user finishes typing and `@search-change` is fired |
-| scroll-throttle-wait | `Number` | `150` | Delay in milliseconds between firing scroll events |
+| search-debounce-delay | `Number` | `150` | Delay in milliseconds after user finishes typing and `@search-change` is fired |
+| scroll-throttle-delay | `Number` | `150` | Delay in milliseconds between firing scroll events |
 | load-more-threshold | `Number` | `60` | Distance in px from bottom of options dropdown before `@load-more` is fired. |
 | no-options-message | `String` | `'No options found.'` | Message shown when no options are provided |
 
@@ -140,6 +140,7 @@ export default {
 
 ## TODOs
 
+- Write tests
 - Working examples
 - Ability to add new options via component
 
