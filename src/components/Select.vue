@@ -17,8 +17,8 @@
 
                     <template v-if="hasValue && multiple">
                         <div
-                            v-for="selectedOption in selectedOptions"
-                            :key="selectedOption[optionIdentifier]"
+                            v-for="(selectedOption, index) in selectedOptions"
+                            :key="index"
                             class="vs-select-multiple-value"
                             @click.stop
                         >
@@ -45,8 +45,8 @@
                             :id="id"
                             ref="input"
                             v-model="searchQuery"
-                            size="2"
                             type="text"
+                            :size="(disabled || ! searchable) ? 2 : null"
                             :readonly="disabled || ! searchable"
                             :tabindex="disabled ? -1 : 0"
                             autocomplete="off"
@@ -72,10 +72,12 @@
                 v-if="dropdownIsVisible"
                 ref="dropdown"
                 :options="options"
+                :multiple="multiple"
                 :loading-more="loadingMore"
                 :selected-options="selectedOptions"
                 :option-identifier="optionIdentifier"
                 :no-options-message="noOptionsMessage"
+                :scroll-throttle-wait="scrollThrottleWait"
                 :load-more-threshold="loadMoreThreshold"
                 @load-more="$emit('load-more')"
                 @select-option="selectOption"
@@ -102,9 +104,6 @@
 </template>
 
 <script>
-// Throttle scroll
-// Throttle searchQuery emit
-
 import SelectDropdown from './Dropdown.vue';
 
 export default {
@@ -153,7 +152,7 @@ export default {
 
         searchable: {
             type: Boolean,
-            default: true,
+            default: false,
         },
 
         placeholder: {
@@ -176,7 +175,22 @@ export default {
             },
         },
 
-        scrollLoaderThreshold: {
+        closeOnSelect: {
+            type: Boolean,
+            default: null,
+        },
+
+        queryChangeWait: {
+            type: Number,
+            default: 150,
+        },
+
+        scrollThrottleWait: {
+            type: Number,
+            default: 150,
+        },
+
+        loadMoreThreshold: {
             type: Number,
             default: 60,
         },
@@ -194,6 +208,8 @@ export default {
             dropdownIsVisible: false,
             dropdownOpenDirection: 'down',
             selectedOptions: [],
+
+            searchTimeout: null,
         };
     },
 
@@ -231,52 +247,92 @@ export default {
 
             return this.selectedOptions[0];
         },
+
+        hideDropdownOnSelect() {
+            if (this.closeOnSelect === null) {
+                return ! this.multiple;
+            }
+
+            return this.closeOnSelect;
+        },
     },
 
     watch: {
         value: {
-            handler(value) {
-                if (this.hasOptions) {
-                    this.setSelectedOptions(value, 'value');
+            handler(values) {
+                if (! this.hasOptions) {
+                    return;
                 }
+
+                if (! this.selectedOptionValues) {
+                    this.setSelectedOptions(values);
+                    return;
+                }
+
+                if (! Array.isArray(values)) {
+                    values = [ values ];
+                }
+
+                const diff = values.filter(value => {
+                    return ! this.selectedOptionValues.includes(value);
+                });
+
+                // Don't set select options if nothing has changed...
+                if (values.length === this.selectedOptionValues.length && diff.length === 0) {
+                    return;
+                }
+
+                this.setSelectedOptions(values);
             },
             immediate: true,
         },
 
         options: {
             handler() {
-                this.setSelectedOptions(this.value, 'options');
+                if (this.options.length === 0) {
+                    this.setSelectedOptions(this.value);
+                }
             },
             deep: true,
         },
 
         searchQuery(searchQuery) {
-            if (! this.disabled) {
-                if (this.hasSearchQuery) {
-                    this.showDropdown();
-                }
-
-                if (this.dropdownIsVisible) {
-                    this.$refs.dropdown.scrollToTop();
-                }
-
-                this.$refs.input.setAttribute('size', searchQuery.length + 2);
-                this.$emit('query-change', searchQuery);
+            if (this.disabled) {
+                return;
             }
+
+            if (this.hasSearchQuery) {
+                this.showDropdown();
+            }
+
+            if (this.$refs.dropdown) {
+                this.$refs.dropdown.scrollToTop();
+            }
+
+            clearTimeout(this.searchTimeout);
+
+            this.searchTimeout = setTimeout(() => {
+                this.$emit('query-change', searchQuery);
+            }, this.queryChangeWait);
         },
 
-        selectedOptionValues(selectedOptionValues) {
-            if (! this.disabled) {
-                if (this.multiple) {
-                    return this.$emit('input', selectedOptionValues);
-                }
-
-                if (selectedOptionValues.length !== 0) {
-                    return this.$emit('input', selectedOptionValues[0]);
-                }
-
-                this.$emit('input', null);
+        selectedOptionValues(values) {
+            // Don't do anything if the select is disabled...
+            if (this.disabled) {
+                return;
             }
+
+            if (this.multiple) {
+                return this.$emit('input', values);
+            }
+
+            // Return null if nothing has been selected...
+            if (values.length === 0) {
+                return this.$emit('input', null);
+            }
+
+            // Return the first selected value...
+            this.$emit('input', values[0]);
         },
     },
 
@@ -298,34 +354,62 @@ export default {
 
     methods: {
         keydownListener(e) {
-            if (! this.disabled) {
-                // Arrow down
-                if (e.keyCode === 40 && this.inputIsActive && ! this.dropdownIsVisible) {
-                    this.dropdownIsVisible = true;
-                }
+            if (this.disabled) {
+                return;
+            }
 
-                // Delete
-                if (e.keyCode === 8 && this.inputIsActive && this.hasValue && ! this.multiple) {
-                    this.selectedOptions = [];
-                }
+            // Arrow down
+            if (e.keyCode === 40 && this.inputIsActive && ! this.dropdownIsVisible) {
+                this.dropdownIsVisible = true;
+            }
 
-                // Tab, Escape
-                if ((e.keyCode === 9 || e.keyCode === 27) && this.dropdownIsVisible) {
-                    this.dropdownIsVisible = false;
-                }
+            // Delete
+            if (e.keyCode === 8 && this.inputIsActive && this.hasValue && ! this.multiple) {
+                this.selectedOptions = [];
+            }
+
+            // Tab, Escape
+            if ((e.keyCode === 9 || e.keyCode === 27) && this.dropdownIsVisible) {
+                this.dropdownIsVisible = false;
             }
         },
 
-        setSelectedOptions(value) {
-            if (! value) {
-                return this.selectedOptions = [];
+        setSelectedOptions(values) {
+            if (! Array.isArray(values)) {
+                values = [ values ];
             }
 
-            const values = Array.isArray(value) ? value : [ value ];
+            if (values.length === 0) {
+                this.selectedOptions = [];
+                return;
+            }
 
-            this.selectedOptions = this.options.filter(selectedOption => {
-                return values.includes(selectedOption[this.optionIdentifier]);
+            let options = [ ...this.options ];
+            let optionsCache = {};
+            let selectedOptions = [];
+
+            values.forEach(value => {
+                const cachedOption = optionsCache[value];
+
+                if (cachedOption) {
+                    selectedOptions.push(this.formatSelectedOption(cachedOption));
+                    return;
+                }
+
+                options.some((option, index) => {
+                    optionsCache[option[this.optionIdentifier]] = { ...option };
+
+                    if (option[this.optionIdentifier] === value) {
+                        selectedOptions.push(this.formatSelectedOption(option));
+
+                        // Remove all options before current index...
+                        options.splice(0, index + 1);
+                        return true;
+                    }
+                });
             });
+
+            this.selectedOptions = selectedOptions;
         },
 
         setDropdownPosition() {
@@ -334,20 +418,24 @@ export default {
                 const dropdownRect = this.$refs.dropdown.$el.getBoundingClientRect();
 
                 if ((selectRect.y + selectRect.height + dropdownRect.height) > window.innerHeight) {
-                    return this.dropdownOpenDirection = 'up';
+                    this.dropdownOpenDirection = 'up';
+                    return;
                 }
 
-                return this.dropdownOpenDirection = 'down';
+                this.dropdownOpenDirection = 'down';
+                return;
             }
 
-            return this.dropdownOpenDirection = this.openDirection;
+            this.dropdownOpenDirection = this.openDirection;
         },
 
         activateSelect() {
-            if (! this.disabled) {
-                this.focusInput();
-                this.showDropdown();
+            if (this.disabled) {
+                return;
             }
+
+            this.focusInput();
+            this.showDropdown();
         },
 
         focusInput() {
@@ -360,13 +448,15 @@ export default {
         },
 
         showDropdown() {
-            if (! this.disabled && ! this.dropdownIsVisible) {
-                this.dropdownIsVisible = true;
-
-                this.$nextTick(() => {
-                    this.setDropdownPosition();
-                });
+            if (this.disabled || this.dropdownIsVisible) {
+                return;
             }
+
+            this.dropdownIsVisible = true;
+
+            this.$nextTick(() => {
+                this.setDropdownPosition();
+            });
         },
 
         deactivateSelectOnClick(event) {
@@ -381,34 +471,50 @@ export default {
             }
         },
 
+        formatSelectedOption(option) {
+            return {
+                [this.optionIdentifier]: option[this.optionIdentifier],
+                [this.optionLabel]: option[this.optionLabel],
+            };
+        },
+
         selectOption(option) {
-            if (! this.disabled) {
+            if (this.disabled) {
+                return;
+            }
+
+            if (this.hideDropdownOnSelect) {
                 this.focusInput();
                 this.searchQuery = '';
                 this.dropdownIsVisible = false;
-
-                this.$emit('change');
-                this.$emit('select', option);
-
-                if (this.multiple) {
-                    return this.selectedOptions.push(option);
-                }
-
-                this.selectedOptions = [ option ];
             }
+
+            this.$emit('change');
+            this.$emit('select', option);
+
+            if (this.multiple) {
+                this.selectedOptions.push(option);
+                return;
+            }
+
+            this.selectedOptions = [ option ];
         },
 
         deselectOption(option) {
-            if (! this.disabled) {
-                this.dropdownIsVisible = false;
-
-                this.$emit('change');
-                this.$emit('deselect', option);
-
-                this.selectedOptions = this.selectedOptions.filter(selectedOption => {
-                    return selectedOption[this.optionIdentifier] !== option[this.optionIdentifier];
-                });
+            if (this.disabled) {
+                return;
             }
+
+            if (this.hideDropdownOnSelect) {
+                this.dropdownIsVisible = false;
+            }
+
+            this.$emit('change');
+            this.$emit('deselect', option);
+
+            this.selectedOptions = this.selectedOptions.filter(selectedOption => {
+                return selectedOption[this.optionIdentifier] !== option[this.optionIdentifier];
+            });
         },
     },
 };

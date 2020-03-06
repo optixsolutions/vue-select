@@ -1,5 +1,8 @@
 <template>
-    <div class="vs-dropdown">
+    <div
+        class="vs-dropdown"
+        :class="! showPointer ? 'pointer-events-none' : ''"
+    >
         <div ref="scrollContent" class="vs-dropdown-scroll">
             <div v-if="! hasOptions" class="vs-dropdown-no-options">
                 {{ noOptionsMessage }}
@@ -11,7 +14,6 @@
                     :key="option[optionIdentifier]"
                     :ref="`option-${index}`"
                     @click.stop="toggleSelectedOption(option)"
-                    @mouseout="clearFocusedOption"
                     @mouseenter="setFocusedOption(option)"
                 >
                     <slot
@@ -59,6 +61,16 @@ export default {
             default: false,
         },
 
+        multiple: {
+            type: Boolean,
+            required: true,
+        },
+
+        scrollThrottleWait: {
+            type: Number,
+            required: true,
+        },
+
         loadMoreThreshold: {
             type: Number,
             required: true,
@@ -72,10 +84,12 @@ export default {
 
     data() {
         return {
+            showPointer: true,
             focusedOption: null,
 
             lastScroll: 0,
             scrollableHeight: 0,
+            throttlingScroll: false,
         };
     },
 
@@ -101,13 +115,13 @@ export default {
         },
 
         focusedOptionIndex() {
-            if (this.focusedOption) {
-                return this.options.findIndex(option => {
-                    return option[this.optionIdentifier] === this.focusedOption[this.optionIdentifier];
-                });
+            if (! this.focusedOption) {
+                return null;
             }
 
-            return null;
+            return this.options.findIndex(option => {
+                return option[this.optionIdentifier] === this.focusedOption[this.optionIdentifier];
+            });
         },
 
         lastOptionIndex() {
@@ -123,14 +137,35 @@ export default {
             },
             deep: true,
         },
+
+        throttlingScroll(throttlingScroll) {
+            if (throttlingScroll) {
+                return;
+            }
+
+            const currentScroll = this.$refs.scrollContent.scrollTop;
+
+            if (! this.throttlingScroll) {
+                if (
+                    ! this.loadingMore
+                    && currentScroll > this.lastScroll
+                    && (this.scrollableHeight - currentScroll) < this.loadMoreThreshold
+                ) {
+                    this.lastScroll = currentScroll;
+
+                    this.$emit('load-more');
+                }
+            }
+        },
     },
 
     created() {
         document.addEventListener('keydown', this.keydownListener);
+        document.addEventListener('mousemove', this.mouseMove);
     },
 
     mounted() {
-        this.$refs.scrollContent.addEventListener('scroll', this.scrollListener);
+        this.$refs.scrollContent.addEventListener('scroll', this.throttleScroll);
 
         this.setScrollableHeight();
 
@@ -141,47 +176,60 @@ export default {
 
     beforeDestroy() {
         document.removeEventListener('keydown', this.keydownListener);
-        this.$refs.scrollContent.removeEventListener('keydown', this.scrollListener);
+        document.removeEventListener('mousemove', this.mouseMove);
+
+        this.$refs.scrollContent.removeEventListener('keydown', this.throttleScroll);
     },
 
     methods: {
         keydownListener(e) {
-            if (this.hasFocusableOptions) {
-                // Enter
-                if (e.keyCode === 13) {
-                    e.preventDefault();
-
-                    if (this.focusableOptions.length === 1) {
-                        return this.toggleSelectedOption(
-                            this.focusableOptions[0],
-                        );
-                    }
-
-                    return this.toggleSelectedOption(
-                        this.options[this.focusedOptionIndex],
-                    );
-                }
-
-                // Arrow up
-                if (e.keyCode === 38) {
-                    const previousIndex = this.getPreviousFocusableIndex(
-                        this.focusedOptionIndex,
-                    );
-
-                    this.setFocusedOption(this.options[previousIndex]);
-                    this.scrollToOption(previousIndex);
-                }
-
-                // Arrow down
-                if (e.keyCode === 40) {
-                    const nextIndex = this.getNextFocusableIndex(
-                        this.focusedOptionIndex,
-                    );
-
-                    this.setFocusedOption(this.options[nextIndex]);
-                    this.scrollToOption(nextIndex);
-                }
+            if (! this.hasFocusableOptions) {
+                return;
             }
+
+            // Enter
+            if (e.keyCode === 13) {
+                e.preventDefault();
+
+                if (this.focusableOptions.length === 1) {
+                    this.toggleSelectedOption(
+                        this.focusableOptions[0],
+                    );
+                    return;
+                }
+
+                this.toggleSelectedOption(
+                    this.options[this.focusedOptionIndex],
+                );
+            }
+
+            // Arrow up
+            if (e.keyCode === 38) {
+                this.showPointer = false;
+
+                const previousIndex = this.getPreviousFocusableIndex(
+                    this.focusedOptionIndex,
+                );
+
+                this.setFocusedOption(this.options[previousIndex]);
+                this.scrollToOption(previousIndex);
+            }
+
+            // Arrow down
+            if (e.keyCode === 40) {
+                this.showPointer = false;
+
+                const nextIndex = this.getNextFocusableIndex(
+                    this.focusedOptionIndex,
+                );
+
+                this.setFocusedOption(this.options[nextIndex]);
+                this.scrollToOption(nextIndex);
+            }
+        },
+
+        mouseMove() {
+            this.showPointer = true;
         },
 
         setScrollableHeight() {
@@ -190,17 +238,13 @@ export default {
             );
         },
 
-        scrollListener() {
-            const currentScroll = this.$refs.scrollContent.scrollTop;
+        throttleScroll() {
+            if (! this.throttlingScroll) {
+                this.throttlingScroll = true;
 
-            if (
-                ! this.loadingMore
-                && currentScroll > this.lastScroll
-                && (this.scrollableHeight - currentScroll) < this.loadMoreThreshold
-            ) {
-                this.lastScroll = currentScroll;
-
-                this.$emit('load-more');
+                setTimeout(() => {
+                    this.throttlingScroll = false;
+                }, this.scrollThrottleWait);
             }
         },
 
@@ -244,10 +288,6 @@ export default {
             this.focusedOption = option;
         },
 
-        clearFocusedOption() {
-            this.focusedOption = null;
-        },
-
         optionIsFocused(value) {
             return this.focusedOption
                 && (this.focusedOption[this.optionIdentifier] === value);
@@ -262,17 +302,19 @@ export default {
         },
 
         toggleSelectedOption(option) {
-            if (option) {
-                if (this.optionIsDisabled(option)) {
-                    return;
-                }
-
-                if (this.optionIsSelected(option[this.optionIdentifier])) {
-                    return this.$emit('deselect-option', option);
-                }
-
-                this.$emit('select-option', option);
+            if (! option || this.optionIsDisabled(option)) {
+                return;
             }
+
+            if (
+                this.optionIsSelected(option[this.optionIdentifier])
+                && this.multiple
+            ) {
+                this.$emit('deselect-option', option);
+                return;
+            }
+
+            this.$emit('select-option', option);
         },
 
         scrollToTop() {
@@ -281,7 +323,6 @@ export default {
 
         scrollToOption(index) {
             this.$refs[`option-${index}`][0].scrollIntoView({
-                behavior: 'smooth',
                 block: 'nearest',
                 inline: 'start',
             });
