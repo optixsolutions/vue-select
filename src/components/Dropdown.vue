@@ -193,6 +193,8 @@ export default {
 
             // Arrow up
             if (e.keyCode === 38) {
+                e.preventDefault();
+
                 this.showPointer = false;
 
                 const previousIndex = this.getPreviousFocusableIndex(
@@ -205,6 +207,8 @@ export default {
 
             // Arrow down
             if (e.keyCode === 40) {
+                e.preventDefault();
+
                 this.showPointer = false;
 
                 const nextIndex = this.getNextFocusableIndex(

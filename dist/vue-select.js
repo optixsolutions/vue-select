@@ -248,6 +248,7 @@
 
 
         if (e.keyCode === 38) {
+          e.preventDefault();
           this.showPointer = false;
           var previousIndex = this.getPreviousFocusableIndex(this.focusedOptionIndex);
           this.setFocusedOption(this.options[previousIndex]);
@@ -256,6 +257,7 @@
 
 
         if (e.keyCode === 40) {
+          e.preventDefault();
           this.showPointer = false;
           var nextIndex = this.getNextFocusableIndex(this.focusedOptionIndex);
           this.setFocusedOption(this.options[nextIndex]);
