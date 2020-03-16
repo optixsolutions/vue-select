@@ -1,40 +1,44 @@
 {
-    "name": "@optix/vue-select",
-    "version": "0.0.7",
-    "main": "dist/vue-select.js",
-    "module": "dist/vue-select.esm.js",
-    "browser": {
-        "./sfc": "src/index.js"
-    },
-    "author": "Rich Moore",
-    "license": "MIT",
-    "scripts": {
-        "build": "yarn clean && rollup --config rollup.config.js",
-        "clean": "rm -f dist/*",
-        "test": "jest",
-        "lint": "node_modules/eslint/bin/eslint.js --ext .js,.vue src"
-    },
-    "dependencies": {
-        "vue": "^2.6.10"
-    },
-    "devDependencies": {
-        "@babel/core": "^7.5.5",
-        "@babel/plugin-proposal-object-rest-spread": "^7.5.5",
-        "@babel/preset-env": "^7.6.0",
-        "autoprefixer": "^9.6.1",
-        "cssnano": "^4.1.10",
-        "eslint": "^6.1.0",
-        "eslint-plugin-vue": "^5.2.3",
-        "jest": "^24.9.0",
-        "node-sass": "^4.12.0",
-        "rollup": "^1.20.3",
-        "rollup-plugin-babel": "^4.3.3",
-        "rollup-plugin-commonjs": "^10.1.0",
-        "rollup-plugin-eslint": "^7.0.0",
-        "rollup-plugin-node-resolve": "^5.2.0",
-        "rollup-plugin-postcss": "^2.0.3",
-        "rollup-plugin-terser": "^5.1.1",
-        "rollup-plugin-vue": "^5.0.1",
-        "vue-template-compiler": "^2.6.10"
-    }
+  "name": "@optix/vue-select",
+  "version": "0.0.7",
+  "author": "Rich Moore",
+  "scripts": {
+    "build": "yarn clean && rollup --config rollup.config.js",
+    "test:unit": "vue-cli-service test:unit",
+    "lint": "node_modules/eslint/bin/eslint.js --ext .js,.vue src",
+    "clean": "rm -f dist/*",
+    "test": "jest"
+  },
+  "main": "dist/vue-select.js",
+  "module": "dist/vue-select.esm.js",
+  "browser": {
+    "./sfc": "src/index.js"
+  },
+  "dependencies": {
+    "vue": "^2.6.10"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.5.5",
+    "@babel/plugin-proposal-object-rest-spread": "^7.5.5",
+    "@babel/preset-env": "^7.6.0",
+    "@types/jest": "^25.1.4",
+    "@vue/cli-plugin-unit-jest": "~4.2.0",
+    "@vue/test-utils": "1.0.0-beta.31",
+    "autoprefixer": "^9.6.1",
+    "cssnano": "^4.1.10",
+    "eslint": "^6.1.0",
+    "eslint-plugin-vue": "^5.2.3",
+    "jest": "^24.9.0",
+    "node-sass": "^4.12.0",
+    "rollup": "^1.20.3",
+    "rollup-plugin-babel": "^4.3.3",
+    "rollup-plugin-commonjs": "^10.1.0",
+    "rollup-plugin-eslint": "^7.0.0",
+    "rollup-plugin-node-resolve": "^5.2.0",
+    "rollup-plugin-postcss": "^2.0.3",
+    "rollup-plugin-terser": "^5.1.1",
+    "rollup-plugin-vue": "^5.0.1",
+    "vue-template-compiler": "^2.6.10"
+  },
+  "license": "MIT"
 }
