@@ -138,11 +138,27 @@ export default {
 </template>
 ```
 
-## TODOs
+## Styling
+
+Vue Select is styled using SCSS, there is a large [list of variables](src/styles/variables) which can be easily changed allowing for customisation. If you wish to take advantange of these, you'll need to remove the JS styles import and instead include the following in your SCSS file:
+
+```scss
+// Import Vue Select default variables...
+@import '~@optix/vue-select/src/styles/variables/_index';
+
+// Override selected variables...
+$vs-font-family: '"Times New Roman", Times, serif';
+$vs-select-border-radius: 0;
+
+// Import Vue Select styles, these will then be built using the new variables...
+@import '~@optix/vue-select/src/styles/base/_index';
+@import '~@optix/vue-select/src/styles/elements/_index';
+```
+
+### TODOs
 
 - Write tests
 - Working examples
-- Example on styling
 - Ability to add new options via component
 
 ## License
