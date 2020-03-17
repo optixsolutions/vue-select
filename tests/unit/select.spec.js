@@ -3,45 +3,87 @@ import Select from '../../src/components/Select';
 
 describe('select component', () => {
     it('renders prop options when focused', async () => {
-        const wrapper = mount(Select, {
-            propsData: {
-                options: [
-                    { value: 1, label: 'Foo' },
-                    { value: 2, label: 'Bar' },
-                ],
-            },
-        });
+        const options = defaultOptions();
+        const wrapper = factory({ options });
 
         wrapper.find({ ref: 'select' }).trigger('click');
 
         await wrapper.vm.$nextTick();
 
-        expect(wrapper.text()).toContain('Foo');
-        expect(wrapper.text()).toContain('Bar');
+        options.forEach(option => {
+            expect(wrapper.text()).toContain(option.label);
+        });
     });
 
     it('emits the correct value when an option is selected', async () => {
-        const options = [
-            { value: 1, label: 'Foo' },
-            { value: 2, label: 'Bar' },
-        ];
+        const options = defaultOptions();
+        const wrapper = factory({ options });
 
-        const wrapper = mount(Select, {
-            propsData: { options },
+        wrapper.find({ ref: 'select' }).trigger('click');
+        await wrapper.vm.$nextTick();
+
+        const firstRenderedOption = wrapper.find('.vs-dropdown-option');
+        expect(firstRenderedOption.text()).toMatch(options[0].label);
+
+        firstRenderedOption.trigger('click');
+        await wrapper.vm.$nextTick();
+
+        expect(wrapper.emitted().input[0][0]).toBe(options[0].value);
+    });
+
+    it('emmits an array of correct values when multiple prop is true an options are selected', async () => {
+        const options = defaultOptions();
+        const wrapper = factory({
+            options,
+            multiple: true,
         });
 
         wrapper.find({ ref: 'select' }).trigger('click');
-
         await wrapper.vm.$nextTick();
 
-        const firstOption = wrapper.find('.vs-dropdown-option');
+        const renderedOptions = wrapper.findAll('.vs-dropdown-option');
+        expect(renderedOptions).toHaveLength(options.length);
 
-        expect(firstOption.text()).toMatch(options[0].label);
-        firstOption.trigger('click');
-
+        renderedOptions.trigger('click');
         await wrapper.vm.$nextTick();
 
-        console.log(wrapper.vm.$props.multiple);
-        // expect(wrapper.emitted().input).toBe(options[0].value);
+        expect(wrapper.emitted().input[0][0]).toEqual(
+            options.map(({ value }) => value),
+        );
+    });
+
+    it('does not select disabled options', async () => {
+        const options = [
+            { value: 1, label: 'Charlie', disabled: true },
+            { value: 2, label: 'Dee' },
+        ];
+        const wrapper = factory({ options });
+
+        wrapper.find({ ref: 'select' }).trigger('click');
+        await wrapper.vm.$nextTick();
+
+        const renderedOptions = wrapper.findAll('.vs-dropdown-option');
+        expect(renderedOptions).toHaveLength(options.length);
+
+        renderedOptions.trigger('click');
+        await wrapper.vm.$nextTick();
+
+        expect(wrapper.emitted().input[0][0]).toBe(options[1].value);
     });
 });
+
+const factory = props => {
+    return mount(Select, {
+        propsData: props,
+    });
+};
+
+const defaultOptions = () => {
+    return [
+        { value: 1, label: 'Charlie' },
+        { value: 'dee', label: 'Dee' },
+        { value: true, label: 'Dennis' },
+        { value: null, label: 'Frank' },
+        { value: 2, label: 'Mac' },
+    ];
+};
