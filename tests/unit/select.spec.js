@@ -28,10 +28,11 @@ describe('select component', () => {
         firstRenderedOption.trigger('click');
         await wrapper.vm.$nextTick();
 
-        expect(wrapper.emitted().input[0][0]).toBe(options[0].value);
+        expect(wrapper.emitted().input[0][0])
+            .toBe(options[0].value);
     });
 
-    it('emmits an array of correct values when multiple prop is true an options are selected', async () => {
+    it('emmits an array of correct values when multiple prop is true and an option is selected', async () => {
         const options = defaultOptions();
         const wrapper = factory({
             options,
@@ -47,9 +48,10 @@ describe('select component', () => {
         renderedOptions.trigger('click');
         await wrapper.vm.$nextTick();
 
-        expect(wrapper.emitted().input[0][0]).toEqual(
-            options.map(({ value }) => value),
-        );
+        expect(wrapper.emitted().input[0][0])
+            .toEqual(
+                options.map(({ value }) => value),
+            );
     });
 
     it('does not select disabled options', async () => {
@@ -68,7 +70,33 @@ describe('select component', () => {
         renderedOptions.trigger('click');
         await wrapper.vm.$nextTick();
 
-        expect(wrapper.emitted().input[0][0]).toBe(options[1].value);
+        expect(wrapper.emitted().input[0][0])
+            .toBe(options[1].value);
+    });
+
+    it('selects a single option which is passed via the value prop', () => {
+        const options = defaultOptions();
+        const wrapper = factory({
+            value: [ options[0].value, options[1].value ],
+            options,
+        });
+
+        expect(wrapper.find({ ref: 'select' }).text())
+            .toContain(options[0].label);
+    });
+
+    it('selects multiple options which are passed via the value prop when multiple prop is true', () => {
+        const options = defaultOptions();
+        const wrapper = factory({
+            value: options.map(({ value }) => value),
+            options,
+            multiple: true,
+        });
+
+        options.forEach(option => {
+            expect(wrapper.find({ ref: 'select' }).text())
+                .toContain(option.label);
+        });
     });
 });
 
